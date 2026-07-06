@@ -1,0 +1,20 @@
+spring:
+  application:
+    name: backend
+
+  datasource:
+    url: ${EFUS_DB_URL}
+    username: ${EFUS_DB_USERNAME}
+    password: ${EFUS_DB_PASSWORD}
+    driver-class-name: ${EFUS_DB_DRIVER_CLASS_NAME:com.mysql.cj.jdbc.Driver}
+
+  jpa:
+    hibernate:
+      ddl-auto: ${EFUS_JPA_DDL_AUTO:update}
+    show-sql: ${EFUS_JPA_SHOW_SQL:true}
+    properties:
+      hibernate:
+        format_sql: ${EFUS_JPA_FORMAT_SQL:true}
+
+server:
+  port: ${EFUS_SERVER_PORT:8080}
