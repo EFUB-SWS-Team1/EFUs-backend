@@ -1,4 +1,4 @@
-package com.efus.backend.infra.oauth.dto;
+package com.efus.backend.infra.oauth.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 

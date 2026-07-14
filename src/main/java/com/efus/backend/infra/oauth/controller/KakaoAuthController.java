@@ -1,10 +1,15 @@
 package com.efus.backend.infra.oauth.controller;
 
-import com.efus.backend.infra.oauth.dto.KakaoLoginRequest;
-import com.efus.backend.infra.oauth.dto.KakaoTokenResponse;
-import com.efus.backend.infra.oauth.dto.KakaoUserInfoResponse;
+import com.efus.backend.domain.user.entity.User;
+import com.efus.backend.infra.oauth.dto.request.KakaoLoginRequest;
+import com.efus.backend.infra.oauth.dto.response.KakaoTokenResponse;
+import com.efus.backend.infra.oauth.dto.response.KakaoUserInfoResponse;
+import com.efus.backend.infra.oauth.dto.response.LoginResponse;
 import com.efus.backend.infra.oauth.service.KakaoAuthService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -16,21 +21,43 @@ public class KakaoAuthController {
     private final KakaoAuthService kakaoAuthService;
 
     @PostMapping("/api/auth/kakao/login")
-    public String kakaoLogin(@RequestBody KakaoLoginRequest request) {
+    public ResponseEntity<LoginResponse> kakaoLogin(@RequestBody KakaoLoginRequest request) {
 
-        // 1. 프론트에서 받은 코드로 카카오 Access Token 획득
+        // 1. 카카오 서버 연동 (토큰 발급 및 유저 정보 조회)
         KakaoTokenResponse tokenResponse = kakaoAuthService.getKakaoAccessToken(request.authorizationCode());
-
-        // 2. 획득한 토큰으로 카카오 유저 정보 조회
         KakaoUserInfoResponse userInfo = kakaoAuthService.getKakaoUserInfo(tokenResponse.accessToken());
 
-        // 3. 콘솔에 내 정보가 잘 나오는지 로그 찍어보기
-        System.out.println("카카오 고유 ID: " + userInfo.id());
-        System.out.println("이름(닉네임): " + userInfo.kakaoAccount().profile().nickname());
-        System.out.println("이메일: " + userInfo.kakaoAccount().email());
-        System.out.println("프로필 사진 URL: " + userInfo.kakaoAccount().profile().profileImageUrl());
+        // 2. DB에 가입 또는 로그인 처리
+        KakaoAuthService.LoginProcessResult processResult = kakaoAuthService.loginOrSignUp(userInfo);
+        User dbUser = processResult.user();
+        boolean isNewUser = processResult.isNewUser();
 
-        // 임시로 화면에 내 이름 띄워주기
-        return userInfo.kakaoAccount().profile().nickname() + " 회원 정보 조회 성공";
+        // 3. 명세서 형식에 맞춘 응답 Body 생성
+        LoginResponse.UserInfo userDto = new LoginResponse.UserInfo(
+                dbUser.getId(),
+                dbUser.getNickname(),
+                dbUser.getEmail(),
+                dbUser.getProfileImageUrl()
+        );
+
+        LoginResponse responseBody = new LoginResponse(
+                "임시_EFUs_Access_Token",
+                "Bearer",
+                3600,
+                isNewUser, // DB 판단 결과에 따라 true/false 자동 할당
+                userDto
+        );
+
+        // 4. 명세서 형식에 맞춘 Header (Set-Cookie) 생성
+        ResponseCookie cookie = ResponseCookie.from("refreshToken", "dummy_refresh_token_value")
+                .httpOnly(true)
+                .secure(true)
+                .sameSite("None")
+                .path("/")
+                .build();
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                .body(responseBody);
     }
 }
