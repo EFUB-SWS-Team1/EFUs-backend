@@ -6,11 +6,14 @@ import com.efus.backend.infra.oauth.dto.request.KakaoLoginRequest;
 import com.efus.backend.infra.oauth.dto.response.KakaoTokenResponse;
 import com.efus.backend.infra.oauth.dto.response.KakaoUserInfoResponse;
 import com.efus.backend.infra.oauth.dto.response.LoginResponse;
+import com.efus.backend.infra.oauth.dto.response.ReissueResponse;
 import com.efus.backend.infra.oauth.service.KakaoAuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -63,6 +66,48 @@ public class KakaoAuthController {
                 .build();
 
         // Cookie에 EFUs Refresh Token을 담아 반환
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                .body(responseBody);
+    }
+
+    @PostMapping("/api/auth/reissue")
+    public ResponseEntity<ReissueResponse> reissueToken(
+            @CookieValue(value = "refreshToken", required = false) String refreshToken) {
+
+        // 1. Refresh Token 존재 여부 확인
+        if (refreshToken == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        // 2. 토큰 유효성 및 만료 여부 검증
+        if (!jwtProvider.validateToken(refreshToken)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        // 3. 토큰에서 유저 ID 추출
+        Long userId = jwtProvider.getUserIdFromToken(refreshToken);
+
+        // 4. 새로운 토큰 발급
+        String newAccessToken = jwtProvider.createAccessToken(userId);
+        String newRefreshToken = jwtProvider.createRefreshToken(userId);
+
+        // 5. 명세서 형식에 맞춘 응답 Body 생성
+        ReissueResponse responseBody = new ReissueResponse(
+                newAccessToken,
+                "Bearer",
+                3600, // Access Token 만료 시간
+                true  // Refresh Token도 함께 교체했으므로 true
+        );
+
+        // 6. 새로운 Refresh Token을 쿠키에 굽기
+        ResponseCookie cookie = ResponseCookie.from("refreshToken", newRefreshToken)
+                .httpOnly(true)
+                .secure(true)
+                .sameSite("None")
+                .path("/")
+                .build();
+
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, cookie.toString())
                 .body(responseBody);
