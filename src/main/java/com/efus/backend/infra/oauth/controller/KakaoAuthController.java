@@ -1,6 +1,9 @@
 package com.efus.backend.infra.oauth.controller;
 
 import com.efus.backend.domain.user.entity.User;
+import com.efus.backend.domain.user.repository.UserRepository;
+import com.efus.backend.global.exception.CustomException;
+import com.efus.backend.global.exception.ErrorCode;
 import com.efus.backend.global.security.jwt.JwtProvider;
 import com.efus.backend.infra.oauth.dto.request.KakaoLoginRequest;
 import com.efus.backend.infra.oauth.dto.response.KakaoTokenResponse;
@@ -13,10 +16,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CookieValue;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -24,24 +24,25 @@ public class KakaoAuthController {
 
     private final KakaoAuthService kakaoAuthService;
     private final JwtProvider jwtProvider;
+    private final UserRepository userRepository;
 
     @PostMapping("/api/auth/kakao/login")
     public ResponseEntity<LoginResponse> kakaoLogin(@RequestBody KakaoLoginRequest request) {
 
-        // 1. 카카오 서버 연동
+        if (request.authorizationCode() == null || request.authorizationCode().trim().isEmpty()) {
+            throw new CustomException(ErrorCode.AUTHORIZATION_CODE_REQUIRED);
+        }
+
         KakaoTokenResponse tokenResponse = kakaoAuthService.getKakaoAccessToken(request.authorizationCode());
         KakaoUserInfoResponse userInfo = kakaoAuthService.getKakaoUserInfo(tokenResponse.accessToken());
 
-        // 2. 우리 DB에 가입 또는 로그인 처리
         KakaoAuthService.LoginProcessResult processResult = kakaoAuthService.loginOrSignUp(userInfo);
         User dbUser = processResult.user();
         boolean isNewUser = processResult.isNewUser();
 
-        // 3. EFUs JWT 발급
         String accessToken = jwtProvider.createAccessToken(dbUser.getId());
         String refreshToken = jwtProvider.createRefreshToken(dbUser.getId());
 
-        // 4. 명세서 형식에 맞춘 응답 Body 생성
         LoginResponse.UserInfo userDto = new LoginResponse.UserInfo(
                 dbUser.getId(),
                 dbUser.getNickname(),
@@ -50,14 +51,13 @@ public class KakaoAuthController {
         );
 
         LoginResponse responseBody = new LoginResponse(
-                accessToken, // Access Token 삽입
+                accessToken,
                 "Bearer",
-                3600, // Access Token 만료까지 남은 시간
+                3600,
                 isNewUser,
                 userDto
         );
 
-        // 5. 명세서 형식에 맞춘 Header (Set-Cookie) 생성
         ResponseCookie cookie = ResponseCookie.from("refreshToken", refreshToken) // Refresh Token 삽입
                 .httpOnly(true)
                 .secure(true)
@@ -65,7 +65,6 @@ public class KakaoAuthController {
                 .path("/")
                 .build();
 
-        // Cookie에 EFUs Refresh Token을 담아 반환
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, cookie.toString())
                 .body(responseBody);
@@ -75,32 +74,32 @@ public class KakaoAuthController {
     public ResponseEntity<ReissueResponse> reissueToken(
             @CookieValue(value = "refreshToken", required = false) String refreshToken) {
 
-        // 1. Refresh Token 존재 여부 확인
         if (refreshToken == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            throw new CustomException(ErrorCode.REFRESH_TOKEN_REQUIRED);
         }
 
-        // 2. 토큰 유효성 및 만료 여부 검증
-        if (!jwtProvider.validateToken(refreshToken)) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        JwtProvider.TokenStatus status = jwtProvider.validateToken(refreshToken);
+        if (status == JwtProvider.TokenStatus.EXPIRED) {
+            throw new CustomException(ErrorCode.EXPIRED_REFRESH_TOKEN);
+        } else if (status == JwtProvider.TokenStatus.INVALID) {
+            throw new CustomException(ErrorCode.INVALID_REFRESH_TOKEN);
         }
 
-        // 3. 토큰에서 유저 ID 추출
         Long userId = jwtProvider.getUserIdFromToken(refreshToken);
 
-        // 4. 새로운 토큰 발급
+        userRepository.findById(userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
         String newAccessToken = jwtProvider.createAccessToken(userId);
         String newRefreshToken = jwtProvider.createRefreshToken(userId);
 
-        // 5. 명세서 형식에 맞춘 응답 Body 생성
         ReissueResponse responseBody = new ReissueResponse(
                 newAccessToken,
                 "Bearer",
-                3600, // Access Token 만료 시간
-                true  // Refresh Token도 함께 교체했으므로 true
+                3600,
+                true
         );
 
-        // 6. 새로운 Refresh Token을 쿠키에 굽기
         ResponseCookie cookie = ResponseCookie.from("refreshToken", newRefreshToken)
                 .httpOnly(true)
                 .secure(true)
@@ -111,5 +110,40 @@ public class KakaoAuthController {
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, cookie.toString())
                 .body(responseBody);
+    }
+
+    @PostMapping("/api/auth/logout")
+    public ResponseEntity<Void> logout(
+            @RequestHeader(value = "Authorization", required = false) String authorization,
+            @CookieValue(value = "refreshToken", required = false) String refreshToken) {
+
+        if (authorization == null || !authorization.startsWith("Bearer ")) {
+            throw new CustomException(ErrorCode.UNAUTHORIZED);
+        }
+        String accessToken = authorization.substring(7);
+
+        if (jwtProvider.validateToken(accessToken) != JwtProvider.TokenStatus.VALID) {
+            throw new CustomException(ErrorCode.UNAUTHORIZED);
+        }
+
+        if (refreshToken == null) {
+            throw new CustomException(ErrorCode.REFRESH_TOKEN_REQUIRED);
+        }
+
+        if (jwtProvider.validateToken(refreshToken) != JwtProvider.TokenStatus.VALID) {
+            throw new CustomException(ErrorCode.INVALID_REFRESH_TOKEN);
+        }
+
+        ResponseCookie cookie = ResponseCookie.from("refreshToken", "")
+                .maxAge(0)
+                .httpOnly(true)
+                .secure(true)
+                .sameSite("None")
+                .path("/")
+                .build();
+
+        return ResponseEntity.noContent()
+                .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                .build();
     }
 }
