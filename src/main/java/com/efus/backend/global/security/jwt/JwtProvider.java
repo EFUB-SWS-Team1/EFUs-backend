@@ -13,10 +13,6 @@ import java.util.Date;
 @Component
 public class JwtProvider {
 
-    public enum TokenStatus {
-        VALID, EXPIRED, INVALID
-    }
-
     private final Key key;
     private final long accessTokenValidityTime;
     private final long refreshTokenValidityTime;

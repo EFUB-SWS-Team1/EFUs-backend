@@ -5,6 +5,7 @@ import com.efus.backend.domain.user.repository.UserRepository;
 import com.efus.backend.global.exception.CustomException;
 import com.efus.backend.global.exception.ErrorCode;
 import com.efus.backend.global.security.jwt.JwtProvider;
+import com.efus.backend.global.security.jwt.TokenStatus;
 import com.efus.backend.infra.oauth.dto.request.KakaoLoginRequest;
 import com.efus.backend.infra.oauth.dto.response.KakaoTokenResponse;
 import com.efus.backend.infra.oauth.dto.response.KakaoUserInfoResponse;
@@ -78,10 +79,10 @@ public class KakaoAuthController {
             throw new CustomException(ErrorCode.REFRESH_TOKEN_REQUIRED);
         }
 
-        JwtProvider.TokenStatus status = jwtProvider.validateToken(refreshToken);
-        if (status == JwtProvider.TokenStatus.EXPIRED) {
+        TokenStatus status = jwtProvider.validateToken(refreshToken);
+        if (status == TokenStatus.EXPIRED) {
             throw new CustomException(ErrorCode.EXPIRED_REFRESH_TOKEN);
-        } else if (status == JwtProvider.TokenStatus.INVALID) {
+        } else if (status == TokenStatus.INVALID) {
             throw new CustomException(ErrorCode.INVALID_REFRESH_TOKEN);
         }
 
@@ -122,7 +123,7 @@ public class KakaoAuthController {
         }
         String accessToken = authorization.substring(7);
 
-        if (jwtProvider.validateToken(accessToken) != JwtProvider.TokenStatus.VALID) {
+        if (jwtProvider.validateToken(accessToken) != TokenStatus.VALID) {
             throw new CustomException(ErrorCode.UNAUTHORIZED);
         }
 
@@ -130,7 +131,7 @@ public class KakaoAuthController {
             throw new CustomException(ErrorCode.REFRESH_TOKEN_REQUIRED);
         }
 
-        if (jwtProvider.validateToken(refreshToken) != JwtProvider.TokenStatus.VALID) {
+        if (jwtProvider.validateToken(refreshToken) != TokenStatus.VALID) {
             throw new CustomException(ErrorCode.INVALID_REFRESH_TOKEN);
         }
 
