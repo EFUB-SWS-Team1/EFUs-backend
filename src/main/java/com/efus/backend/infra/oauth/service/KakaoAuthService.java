@@ -1,6 +1,6 @@
 package com.efus.backend.infra.oauth.service;
 
-import com.efus.backend.domain.user.entity.Status;
+import com.efus.backend.domain.user.entity.UserStatus;
 import com.efus.backend.domain.user.entity.User;
 import com.efus.backend.domain.user.repository.UserRepository;
 import com.efus.backend.global.exception.CustomException;
@@ -86,7 +86,7 @@ public class KakaoAuthService {
                     .nickname(userInfo.kakaoAccount().profile().nickname())
                     .email(userInfo.kakaoAccount().email())
                     .profileImageUrl(userInfo.kakaoAccount().profile().profileImageUrl())
-                    .status(Status.ACTIVE)
+                    .userStatus(UserStatus.ACTIVE)
                     .build();
 
             User savedUser = userRepository.save(newUser);

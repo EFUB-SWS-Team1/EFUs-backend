@@ -41,11 +41,11 @@ public class KakaoAuthController {
         User dbUser = processResult.user();
         boolean isNewUser = processResult.isNewUser();
 
-        String accessToken = jwtProvider.createAccessToken(dbUser.getId());
-        String refreshToken = jwtProvider.createRefreshToken(dbUser.getId());
+        String accessToken = jwtProvider.createAccessToken(dbUser.getUserId());
+        String refreshToken = jwtProvider.createRefreshToken(dbUser.getUserId());
 
         LoginResponse.UserInfo userDto = new LoginResponse.UserInfo(
-                dbUser.getId(),
+                dbUser.getUserId(),
                 dbUser.getNickname(),
                 dbUser.getEmail(),
                 dbUser.getProfileImageUrl()
