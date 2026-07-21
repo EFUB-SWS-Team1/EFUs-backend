@@ -83,7 +83,7 @@ public class KakaoAuthService {
         } else {
             User newUser = User.builder()
                     .kakaoId(kakaoId)
-                    .nickname(userInfo.kakaoAccount().profile().nickname())
+                    .name(userInfo.kakaoAccount().profile().nickname())
                     .email(userInfo.kakaoAccount().email())
                     .profileImageUrl(userInfo.kakaoAccount().profile().profileImageUrl())
                     .userStatus(UserStatus.ACTIVE)

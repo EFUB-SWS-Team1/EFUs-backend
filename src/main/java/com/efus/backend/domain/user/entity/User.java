@@ -23,7 +23,7 @@ public class User extends BaseEntity {
     private String email;
 
     @Column(nullable = false)
-    private String nickname;
+    private String name;
 
     @Column
     private String profileImageUrl;
@@ -33,10 +33,10 @@ public class User extends BaseEntity {
     private UserStatus userStatus;
 
     @Builder
-    public User(String kakaoId, String email, String nickname, String profileImageUrl, UserStatus userStatus) {
+    public User(String kakaoId, String email, String name, String profileImageUrl, UserStatus userStatus) {
         this.kakaoId = kakaoId;
         this.email = email;
-        this.nickname = nickname;
+        this.name = name;
         this.profileImageUrl = profileImageUrl;
         this.userStatus = userStatus;
     }

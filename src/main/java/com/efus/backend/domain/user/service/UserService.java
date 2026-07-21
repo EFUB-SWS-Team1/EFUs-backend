@@ -41,7 +41,7 @@ public class UserService {
 
         return new UserInfoResponse(
                 user.getUserId(),
-                user.getNickname(),
+                user.getName(),
                 user.getEmail(),
                 user.getProfileImageUrl(),
                 user.getCreatedAt()

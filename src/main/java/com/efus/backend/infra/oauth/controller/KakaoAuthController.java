@@ -46,7 +46,7 @@ public class KakaoAuthController {
 
         LoginResponse.UserInfo userDto = new LoginResponse.UserInfo(
                 dbUser.getUserId(),
-                dbUser.getNickname(),
+                dbUser.getName(),
                 dbUser.getEmail(),
                 dbUser.getProfileImageUrl()
         );
