@@ -40,7 +40,7 @@ public class UserService {
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
         return new UserInfoResponse(
-                user.getUserId(),
+                user.getId(),
                 user.getName(),
                 user.getEmail(),
                 user.getProfileImageUrl(),

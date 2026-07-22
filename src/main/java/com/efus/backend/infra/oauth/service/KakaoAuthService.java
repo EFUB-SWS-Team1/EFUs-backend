@@ -74,7 +74,7 @@ public class KakaoAuthService {
 
     @Transactional
     public LoginProcessResult loginOrSignUp(KakaoUserInfoResponse userInfo) {
-        String kakaoId = String.valueOf(userInfo.id());
+        Long kakaoId = userInfo.id();
 
         Optional<User> existingUser = userRepository.findByKakaoId(kakaoId);
 
