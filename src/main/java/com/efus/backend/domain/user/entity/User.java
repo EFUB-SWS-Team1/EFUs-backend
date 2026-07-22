@@ -14,7 +14,7 @@ import lombok.NoArgsConstructor;
 public class User extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long userId;
+    private Long id;
 
     @Column(nullable = false, unique = true)
     private String kakaoId;
@@ -30,14 +30,14 @@ public class User extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private UserStatus userStatus;
+    private Status status;
 
     @Builder
-    public User(String kakaoId, String email, String name, String profileImageUrl, UserStatus userStatus) {
+    public User(String kakaoId, String email, String name, String profileImageUrl, Status status) {
         this.kakaoId = kakaoId;
         this.email = email;
         this.name = name;
         this.profileImageUrl = profileImageUrl;
-        this.userStatus = userStatus;
+        this.status = status;
     }
 }
