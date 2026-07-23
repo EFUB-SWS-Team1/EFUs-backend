@@ -19,6 +19,7 @@ spring:
 server:
   port: ${EFUS_SERVER_PORT:8080}
 
+
 kakao:
   client-id: ${KAKAO_CLIENT_ID}
   redirect-uri: ${KAKAO_REDIRECT_URI:http://localhost:3000/kakao/login}
@@ -26,6 +27,15 @@ kakao:
 jwt:
   secret: ${JWT_SECRET:EfusApplicationSuperSecretKeyForJwtTokenGeneration2026}
 
-  # 토큰 만료 시간
-  access-token-validity-in-seconds: 3600 # 1시간
-  refresh-token-validity-in-seconds: 1209600 # 14일
+  access-token-validity-in-seconds: 3600
+  refresh-token-validity-in-seconds: 1209600
+
+cloud:
+  aws:
+    region: ${EFUS_AWS_REGION:ap-northeast-2}
+    s3:
+      bucket: ${EFUS_S3_BUCKET}
+    credentials:
+      access-key: ${EFUS_AWS_ACCESS_KEY}
+      secret-key: ${EFUS_AWS_SECRET_KEY}
+

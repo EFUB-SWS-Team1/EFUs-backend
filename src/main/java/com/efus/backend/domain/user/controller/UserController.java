@@ -2,10 +2,7 @@ package com.efus.backend.domain.user.controller;
 
 import com.efus.backend.domain.user.dto.response.UserInfoResponse;
 import com.efus.backend.domain.user.service.UserService;
-import com.efus.backend.global.exception.CustomException;
-import com.efus.backend.global.exception.ErrorCode;
-import com.efus.backend.global.security.jwt.JwtProvider;
-import com.efus.backend.global.security.jwt.TokenStatus;
+import com.efus.backend.global.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,10 +17,11 @@ public class UserController {
 
     // 내 정보 조회
     @GetMapping("/api/users/me")
-    public ResponseEntity<UserInfoResponse> getMyInfo(
+    public ResponseEntity<ApiResponse<UserInfoResponse>> getMyInfo(
             @RequestHeader(value = "Authorization", required = false) String authorization) {
 
-        // 서비스로 헤더 값을 통째로 넘기고 결과만 받아서 반환
-        return ResponseEntity.ok(userService.getMyInfo(authorization));
+        UserInfoResponse result = userService.getMyInfo(authorization);
+
+        return ResponseEntity.ok(ApiResponse.success(result));
     }
 }
