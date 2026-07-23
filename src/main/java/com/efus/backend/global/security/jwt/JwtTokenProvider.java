@@ -11,20 +11,17 @@ import java.security.Key;
 import java.util.Date;
 
 @Component
-public class JwtProvider {
+public class JwtTokenProvider {
 
     private final Key key;
     private final long accessTokenValidityTime;
     private final long refreshTokenValidityTime;
 
-    public JwtProvider(
+    public JwtTokenProvider(
             @Value("${jwt.secret}") String secretKey,
             @Value("${jwt.access-token-validity-in-seconds}") long accessTokenValidityTime,
             @Value("${jwt.refresh-token-validity-in-seconds}") long refreshTokenValidityTime) {
-
-        byte[] keyBytes = secretKey.getBytes();
-        this.key = Keys.hmacShaKeyFor(keyBytes);
-
+        this.key = Keys.hmacShaKeyFor(secretKey.getBytes());
         this.accessTokenValidityTime = accessTokenValidityTime * 1000;
         this.refreshTokenValidityTime = refreshTokenValidityTime * 1000;
     }
@@ -39,39 +36,48 @@ public class JwtProvider {
 
     private String createToken(Long userId, long expireTime) {
         Date now = new Date();
-        Date expireDate = new Date(now.getTime() + expireTime);
-
         return Jwts.builder()
                 .setSubject(String.valueOf(userId))
                 .setIssuedAt(now)
-                .setExpiration(expireDate)
+                .setExpiration(new Date(now.getTime() + expireTime))
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
     }
 
-    public TokenStatus validateToken(String token) {
+    public Long getUserIdFromToken(String token) {
+        return Long.parseLong(parseClaims(token).getSubject());
+    }
+
+    public boolean validateAccessToken(String token) {
         try {
-            Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
-            return TokenStatus.VALID;
-        } catch (ExpiredJwtException e) {
-            return TokenStatus.EXPIRED;
+            parseClaims(token);
+            return true;
         } catch (JwtException | IllegalArgumentException e) {
-            return TokenStatus.INVALID;
+            return false;
         }
     }
 
-    public Long getUserIdFromToken(String token) {
+    public void validateRefreshToken(String token) {
         try {
-            Claims claims = Jwts.parserBuilder()
-                    .setSigningKey(key)
-                    .build()
-                    .parseClaimsJws(token)
-                    .getBody();
-            return Long.parseLong(claims.getSubject());
+            parseClaims(token);
         } catch (ExpiredJwtException e) {
-            return Long.parseLong(e.getClaims().getSubject());
+            throw new CustomException(ErrorCode.EXPIRED_REFRESH_TOKEN);
         } catch (JwtException | IllegalArgumentException e) {
-            throw new CustomException(ErrorCode.INVALID_REQUEST);
+            throw new CustomException(ErrorCode.INVALID_REFRESH_TOKEN);
         }
+    }
+
+    public long getAccessTokenExpirationInSeconds() {
+        return accessTokenValidityTime / 1000;
+    }
+
+    public boolean shouldRotateRefreshToken(String token) {
+        Date expiration = parseClaims(token).getExpiration();
+        long remaining = expiration.getTime() - System.currentTimeMillis();
+        return remaining < (refreshTokenValidityTime / 2);
+    }
+
+    private Claims parseClaims(String token) {
+        return Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody();
     }
 }

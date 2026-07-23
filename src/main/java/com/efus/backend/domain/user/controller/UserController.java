@@ -2,11 +2,7 @@ package com.efus.backend.domain.user.controller;
 
 import com.efus.backend.domain.user.dto.response.UserInfoResponse;
 import com.efus.backend.domain.user.service.UserService;
-import com.efus.backend.global.exception.CustomException;
-import com.efus.backend.global.exception.ErrorCode;
 import com.efus.backend.global.response.ApiResponse;
-import com.efus.backend.global.security.jwt.JwtProvider;
-import com.efus.backend.global.security.jwt.TokenStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
