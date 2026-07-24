@@ -8,6 +8,7 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
@@ -37,14 +38,14 @@ public class TermMember extends BaseEntity {
     private User user;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(nullable = false, length = 20)
     private TermMemberRole role;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(nullable = false, length = 20)
     private TermMemberStatus status;
 
-    @Column(nullable = false)
+    @Column(name = "joined_at", nullable = false)
     private LocalDateTime joinedAt;
 
     @Builder
@@ -54,5 +55,37 @@ public class TermMember extends BaseEntity {
         this.role = role;
         this.status = status;
         this.joinedAt = (joinedAt != null) ? joinedAt : LocalDateTime.now();
+//    private TermMember(
+//            OrganizationTerm term,
+//            User user,
+//            TermMemberRole role,
+//            LocalDateTime joinedAt
+//    ) {
+//        this.term = term;
+//        this.user = user;
+//        this.role = role;
+//        this.status = TermMemberStatus.ACTIVE;
+//        this.joinedAt = joinedAt;
+//    }
+//
+//    public static TermMember create(
+//            OrganizationTerm term,
+//            User user,
+//            TermMemberRole role,
+//            LocalDateTime joinedAt
+//    ) {
+//        return new TermMember(term, user, role, joinedAt);
+    }
+
+    public boolean isStaff() {
+        return role == TermMemberRole.STAFF;
+    }
+
+    public boolean isActive() {
+        return status == TermMemberStatus.ACTIVE;
+    }
+
+    public void deactivate() {
+        this.status = TermMemberStatus.INACTIVE;
     }
 }
