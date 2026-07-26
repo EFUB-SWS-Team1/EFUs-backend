@@ -26,7 +26,17 @@ public enum ErrorCode {
     KAKAO_API_ERROR(502, "Bad Gateway","KAKAO_API_ERROR", "카카오 서버와 통신하는 중 오류가 발생했습니다."),
 
     TRANSACTION_NOT_FOUND(404, "Not Found", "TRANSACTION_NOT_FOUND", "거래를 찾을 수 없습니다."),
-    TRANSACTION_ALREADY_DELETED(400, "Bad Request", "TRANSACTION_ALREADY_DELETED", "삭제된 거래입니다.");
+    TRANSACTION_ALREADY_DELETED(400, "Bad Request", "TRANSACTION_ALREADY_DELETED", "삭제된 거래입니다."),
+
+    // Invitation 관련
+    INVALID_INVITATION_ROLE(400, "Bad Request", "INVALID_INVITATION_ROLE", "초대 코드 역할은 STAFF 또는 MEMBER여야 합니다."),
+    INVITATION_NOT_FOUND(404, "Not Found", "INVITATION_NOT_FOUND", "초대 코드를 찾을 수 없습니다."),
+    INVITATION_EXPIRED(410, "Gone", "INVITATION_EXPIRED", "만료된 초대 코드입니다."),
+    INVITATION_INACTIVE(410, "Gone", "INVITATION_INACTIVE", "더 이상 사용할 수 없는 초대 코드입니다."),
+    INVITATION_CODE_REQUIRED(400, "Bad Request", "INVITATION_CODE_REQUIRED", "초대 코드는 필수입니다."),
+    TERM_MEMBER_ALREADY_EXISTS(409, "Conflict", "TERM_MEMBER_ALREADY_EXISTS", "이미 가입한 기수입니다."),
+    INVITATION_JOIN_FAILED(500, "Internal Server Error", "INVITATION_JOIN_FAILED", "기수 가입 처리 중 오류가 발생했습니다."),
+    INVITATION_CODE_GENERATION_FAILED(500, "Internal Server Error", "INVITATION_CODE_GENERATION_FAILED", "초대 코드 생성에 실패했습니다.");
 
     private final int status;
     private final String error;
