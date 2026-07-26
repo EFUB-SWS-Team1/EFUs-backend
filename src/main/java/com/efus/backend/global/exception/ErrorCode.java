@@ -25,8 +25,15 @@ public enum ErrorCode {
     // 서버 관련
     KAKAO_API_ERROR(502, "Bad Gateway","KAKAO_API_ERROR", "카카오 서버와 통신하는 중 오류가 발생했습니다."),
 
+    //Transaction 관련
     TRANSACTION_NOT_FOUND(404, "Not Found", "TRANSACTION_NOT_FOUND", "거래를 찾을 수 없습니다."),
     TRANSACTION_ALREADY_DELETED(400, "Bad Request", "TRANSACTION_ALREADY_DELETED", "삭제된 거래입니다."),
+    TRANSACTION_HISTORY_SERIALIZATION_FAILED(
+            500,
+            "Internal Server Error",
+            "TRANSACTION_HISTORY_SERIALIZATION_FAILED",
+            "거래 이력 데이터 변환에 실패했습니다."
+    ),
 
     // Invitation 관련
     INVALID_INVITATION_ROLE(400, "Bad Request", "INVALID_INVITATION_ROLE", "초대 코드 역할은 STAFF 또는 MEMBER여야 합니다."),
