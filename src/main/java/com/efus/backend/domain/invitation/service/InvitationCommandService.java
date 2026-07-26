@@ -55,7 +55,7 @@ public class InvitationCommandService {
      *         TermMember creatorTermMember,
      *         TermMemberRole role
      * ) {
-     *     String code = invitationCodeGenerator.generate();
+     *     String code = invitationCodeGenerator.generate(role);
      *
      *     Invitation invitation = Invitation.create(
      *             term,

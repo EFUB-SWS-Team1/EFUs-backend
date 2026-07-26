@@ -1,6 +1,5 @@
 package com.efus.backend.domain.invitation.dto.request;
 
-import com.efus.backend.domain.member.entity.TermMemberRole;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -17,5 +16,5 @@ public class InvitationReissueRequest {
      */
 
     @NotNull(message = "재발급할 초대 역할은 필수입니다.")
-    private TermMemberRole role;
+    private String role;
 }
