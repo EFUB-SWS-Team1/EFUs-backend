@@ -33,7 +33,10 @@ public class InvitationQueryService {
      *
      * 현재 활성 기수의 STAFF용·MEMBER용 초대 코드를 조회한다.
      *
-     * public InvitationListResponse getInvitations(Long termId) {
+     * public InvitationListResponse getInvitations(
+     *         Long termId,
+     *         String authorization
+     * ) {
      *
      *     OrganizationTerm term =
      *             termQueryService.getTerm(termId);
