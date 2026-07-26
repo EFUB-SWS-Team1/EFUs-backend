@@ -31,6 +31,7 @@ dependencies {
 	testAnnotationProcessor 'org.projectlombok:lombok'
 	implementation platform('software.amazon.awssdk:bom:2.27.21')
 	implementation 'software.amazon.awssdk:s3'
+	testRuntimeOnly 'com.h2database:h2'
 }
 
 tasks.named('test') {
