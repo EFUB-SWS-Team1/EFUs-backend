@@ -22,23 +22,24 @@ public record TransactionResponse(
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) {
-    public static TransactionResponse from(Transaction transaction) {
-        return new TransactionResponse(
-                transaction.getId(),
-                transaction.getTerm().getId(),
-                transaction.getFunding() == null ? null : transaction.getFunding().getId(),
-                null, // TODO: Funding Entity 확정 후 fundingName 연결
-                transaction.getTransactionType(),
-                transaction.getTitle(),
-                transaction.getAmount(),
-                transaction.getTransactionDate(),
-                transaction.getMemo(),
-                transaction.getCreatedByTermMember().getId(),
-                null, // TODO: TermMember/User Entity 확정 후 createdByMemberName 연결
-                transaction.getUpdatedByTermMember() == null ? null : transaction.getUpdatedByTermMember().getId(),
-                null, // TODO: TermMember/User Entity 확정 후 updatedByMemberName 연결
-                transaction.getCreatedAt(),
-                transaction.getModifiedAt()
-        );
-    }
+    // TODO: term,funding,member 연관관계 병합 후 주석 해제
+//    public static TransactionResponse from(Transaction transaction) {
+//        return new TransactionResponse(
+//                transaction.getId(),
+//                transaction.getTerm().getId(),
+//                transaction.getFunding() == null ? null : transaction.getFunding().getId(),
+//                null, // TODO: Funding Entity 확정 후 fundingName 연결
+//                transaction.getTransactionType(),
+//                transaction.getTitle(),
+//                transaction.getAmount(),
+//                transaction.getTransactionDate(),
+//                transaction.getMemo(),
+//                transaction.getCreatedByTermMember().getId(),
+//                null, // TODO: TermMember/User Entity 확정 후 createdByMemberName 연결
+//                transaction.getUpdatedByTermMember() == null ? null : transaction.getUpdatedByTermMember().getId(),
+//                null, // TODO: TermMember/User Entity 확정 후 updatedByMemberName 연결
+//                transaction.getCreatedAt(),
+//                transaction.getModifiedAt()
+//        );
+//    }
 }

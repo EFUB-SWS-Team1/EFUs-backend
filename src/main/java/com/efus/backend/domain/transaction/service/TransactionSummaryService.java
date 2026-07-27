@@ -13,16 +13,18 @@ public class TransactionSummaryService {
 
     private final TransactionRepository transactionRepository;
 
-    public Long calculateIncome(Long termId) {
-        return transactionRepository.sumAmountByTermIdAndTransactionType(
-                termId,
-                TransactionType.INCOME
-        );
-    }
-    public Long calculateExpense(Long termId) {
-        return transactionRepository.sumAmountByTermIdAndTransactionType(
-                termId,
-                TransactionType.EXPENSE
-        );
-    }
+    // TODO: funding,term 연관관계 + FundingQueryService,MemberQueryService,TermQueryService 병합 후 주석 해제
+//    public Long calculateIncome(Long termId) {
+//        return transactionRepository.sumAmountByTermIdAndTransactionType(
+//                termId,
+//                TransactionType.INCOME
+//        );
+//    }
+    // TODO: funding,term 연관관계 + FundingQueryService,MemberQueryService,TermQueryService 병합 후 주석 해제
+//    public Long calculateExpense(Long termId) {
+//        return transactionRepository.sumAmountByTermIdAndTransactionType(
+//                termId,
+//                TransactionType.EXPENSE
+//        );
+//    }
 }
