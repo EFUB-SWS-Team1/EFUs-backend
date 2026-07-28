@@ -36,9 +36,9 @@ public class Transaction extends BaseEntity {
     @JoinColumn(name = "term_id", nullable = false)
     private OrganizationTerm term;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "funding_id")
-    private Funding funding;
+//    @ManyToOne(fetch = FetchType.LAZY)
+//    @JoinColumn(name = "funding_id")
+//    private Funding funding;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "created_by_term_member_id", nullable = false)
@@ -77,7 +77,7 @@ public class Transaction extends BaseEntity {
     @Builder
     public Transaction(
             OrganizationTerm term,
-            Funding funding,
+//            Funding funding,
             TermMember createdByTermMember,
             TransactionType transactionType,
             String title,
@@ -86,7 +86,7 @@ public class Transaction extends BaseEntity {
             String memo
     ) {
         this.term = term;
-        this.funding = funding;
+//        this.funding = funding;
         this.createdByTermMember = createdByTermMember;
         this.transactionType = transactionType;
         this.title = title;
@@ -97,7 +97,7 @@ public class Transaction extends BaseEntity {
     }
 
     public void update(
-            Funding funding,
+//            Funding funding,
             TermMember updatedByTermMember,
             TransactionType transactionType,
             String title,
@@ -105,7 +105,7 @@ public class Transaction extends BaseEntity {
             LocalDate transactionDate,
             String memo
     ) {
-        this.funding = funding;
+//        this.funding = funding;
         this.updatedByTermMember = updatedByTermMember;
         this.transactionType = transactionType;
         this.title = title;
