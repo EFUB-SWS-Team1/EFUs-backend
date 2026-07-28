@@ -2,9 +2,12 @@ package com.efus.backend.domain.term.service;
 
 import com.efus.backend.domain.member.repository.TermMemberRepository;
 import com.efus.backend.domain.term.dto.request.TermCreateRequest;
+import com.efus.backend.domain.term.dto.request.TermUpdateRequest;
 import com.efus.backend.domain.term.dto.response.TermCreateResponse;
 import com.efus.backend.domain.term.dto.response.TermListResponse;
+import com.efus.backend.domain.term.dto.response.TermUpdateResponse;
 import com.efus.backend.domain.term.entity.OrganizationTerm;
+import com.efus.backend.domain.term.entity.TermStatus;
 import com.efus.backend.domain.term.repository.TermRepository;
 import com.efus.backend.domain.user.entity.User;
 import com.efus.backend.domain.user.service.CurrentUserService;
@@ -65,5 +68,33 @@ public class TermService {
 
         // 5. 뼈대 반환
         return null;
+    }
+
+    @Transactional
+    public TermUpdateResponse updateTerm(Long termId, TermUpdateRequest request) {
+        // 1. 요청 값 검증: 수정할 필드가 하나도 없는 경우 처리 (400 EMPTY_UPDATE_REQUEST)[cite: 7]
+        if (request.isEmpty()) {
+            // throw new CustomException(ErrorCode.EMPTY_UPDATE_REQUEST);
+        }
+
+        User user = currentUserService.getCurrentUser();
+
+        // 2. 기수 조회 (없으면 404 TERM_NOT_FOUND)[cite: 7]
+        // OrganizationTerm term = termQueryService.getTerm(termId);
+        OrganizationTerm term = null; // 임시
+
+        // TODO 3. 상태 검증: 이미 종료된 기수인지 확인 (409 TERM_ALREADY_CLOSED)[cite: 7]
+        if (term.getTermStatus() == TermStatus.CLOSED) {
+            // throw new CustomException(ErrorCode.TERM_ALREADY_CLOSED);[cite: 7]
+        }
+
+        // TODO 4. 권한 검증: 해당 기수의 STAFF인지 확인 (403 STAFF_PERMISSION_REQUIRED)[cite: 7]
+
+        // TODO 5. 정보 수정 (Dirty Checking)
+        // 값이 들어온 필드만(null이 아닌 경우만) 기존 엔티티의 값을 변경합니다.
+        // term.update(request.name(), request.startDate()); // OrganizationTerm 엔티티 내부에 update 메서드 생성 필요
+
+        // 6. 뼈대 반환
+        return TermUpdateResponse.from(term);
     }
 }
