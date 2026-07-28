@@ -14,7 +14,10 @@ import org.springframework.transaction.annotation.Transactional;
 public class TransactionQueryService {
 
     private final TransactionRepository transactionRepository;
-
+     public Transaction getTransaction(Long transactionId) {
+         return transactionRepository.findById(transactionId)
+                 .orElseThrow(() -> new CustomException(ErrorCode.TRANSACTION_NOT_FOUND));
+     }
     // TODO: funding,term 연관관계 + FundingQueryService,MemberQueryService,TermQueryService 병합 후 주석 해제
 //    public Transaction getTransactionInTerm(Long termId, Long transactionId) {
 //        return transactionRepository.findByIdAndTerm_Id(transactionId, termId)
