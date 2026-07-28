@@ -2,6 +2,7 @@ package com.efus.backend.domain.organization.controller;
 
 import com.efus.backend.domain.organization.dto.request.OrganizationCreateRequest;
 import com.efus.backend.domain.organization.dto.response.OrganizationCreateResponse;
+import com.efus.backend.domain.organization.dto.response.OrganizationDetailResponse;
 import com.efus.backend.domain.organization.dto.response.OrganizationListResponse;
 import com.efus.backend.domain.organization.service.OrganizationService;
 import com.efus.backend.domain.user.service.CurrentUserService;
@@ -41,5 +42,12 @@ public class OrganizationController {
 //    }
 
     // 단체 상세 조회
+    @GetMapping("/{organizationId}")
+    public ResponseEntity<ApiResponse<OrganizationDetailResponse>> getOrganizationDetail(
+            @PathVariable("organizationId") Long organizationId) {
 
+        OrganizationDetailResponse response = organizationService.getOrganizationDetail(organizationId);
+
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
 }
