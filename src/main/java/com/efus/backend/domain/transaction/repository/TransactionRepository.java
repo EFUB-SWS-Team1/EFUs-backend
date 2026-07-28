@@ -8,23 +8,24 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+// TODO: term 연관관계 병합 후 주석 해제
 public interface TransactionRepository extends JpaRepository<Transaction, Long> {
 
-    Optional<Transaction> findByIdAndTerm_Id(Long transactionId, Long termId);
-
-    Optional<Transaction> findByIdAndTerm_IdAndDeletedFalse(Long transactionId, Long termId);
-
-    List<Transaction> findAllByTerm_IdAndDeletedFalse(Long termId);
-
-    @Query("""
-            select coalesce(sum(t.amount), 0)
-            from Transaction t
-            where t.term.id = :termId
-              and t.transactionType = :transactionType
-              and t.deleted = false
-            """)
-    Long sumAmountByTermIdAndTransactionType(
-            @Param("termId") Long termId,
-            @Param("transactionType") TransactionType transactionType
-    );
+//    Optional<Transaction> findByIdAndTerm_Id(Long transactionId, Long termId);
+//
+//    Optional<Transaction> findByIdAndTerm_IdAndDeletedFalse(Long transactionId, Long termId);
+//
+//    List<Transaction> findAllByTerm_IdAndDeletedFalse(Long termId);
+//
+//    @Query("""
+//            select coalesce(sum(t.amount), 0)
+//            from Transaction t
+//            where t.term.id = :termId
+//              and t.transactionType = :transactionType
+//              and t.deleted = false
+//            """)
+//    Long sumAmountByTermIdAndTransactionType(
+//            @Param("termId") Long termId,
+//            @Param("transactionType") TransactionType transactionType
+//    );
 }
