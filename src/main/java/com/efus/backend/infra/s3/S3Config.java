@@ -7,11 +7,25 @@ import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 
 // 백엔드가 S3 버킷에 파일을 업로드할 수 있도록 AWS S3 연결 객체를 준비하는 클래스
 @Configuration
 @EnableConfigurationProperties(S3Properties.class)
 public class S3Config {
+
+    @Bean
+    public S3Presigner s3Presigner(S3Properties properties) {
+        AwsBasicCredentials credentials = AwsBasicCredentials.create(
+                properties.credentials().accessKey(),
+                properties.credentials().secretKey()
+        );
+
+        return S3Presigner.builder()
+                .region(Region.of(properties.region()))
+                .credentialsProvider(StaticCredentialsProvider.create(credentials))
+                .build();
+    }
 
     @Bean
     public S3Client s3Client(S3Properties properties) {
