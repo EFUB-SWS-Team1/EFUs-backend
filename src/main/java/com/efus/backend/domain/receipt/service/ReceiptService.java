@@ -10,6 +10,7 @@ import com.efus.backend.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.efus.backend.infra.s3.S3Service;
 
 @Service
 @RequiredArgsConstructor
@@ -17,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class ReceiptService {
     private final ReceiptRepository receiptRepository;
     private final TransactionQueryService transactionQueryService;
+    private final S3Service s3Service;
 
     // TODO: MemberQueryService 병합 후 주석 해제
     // private final MemberQueryService memberQueryService;
@@ -32,6 +34,7 @@ public class ReceiptService {
         Receipt receipt = receiptRepository.findByTransaction_Id(transactionId)
                 .orElseThrow(() -> new CustomException(ErrorCode.RECEIPT_NOT_FOUND));
 
-        return ReceiptResponse.from(receipt);
+        String presignedUrl = s3Service.generateReadPresignedUrl(receipt.getStorageKey());
+        return ReceiptResponse.from(receipt, presignedUrl);
     }
 }

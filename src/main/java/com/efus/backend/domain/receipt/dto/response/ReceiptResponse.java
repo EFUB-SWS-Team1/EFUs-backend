@@ -16,14 +16,14 @@ public record ReceiptResponse(
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) {
-    public static ReceiptResponse from(Receipt receipt) {
+    public static ReceiptResponse from(Receipt receipt, String presignedUrl) {
         return new ReceiptResponse(
                 receipt.getId(),
                 receipt.getTransaction().getId(),
                 receipt.getUploadedByTermMember().getId(),
                 receipt.getUploadedByTermMember().getUser().getName(),
                 receipt.getStorageKey(),
-                receipt.getPresignedUrl(),
+                presignedUrl,
                 receipt.getOriginalFilename(),
                 receipt.getContentType(),
                 receipt.getFileSize(),
