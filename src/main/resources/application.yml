@@ -27,9 +27,8 @@ kakao:
 jwt:
   secret: ${JWT_SECRET:EfusApplicationSuperSecretKeyForJwtTokenGeneration2026}
 
-  # 토큰 만료 시간
-  access-token-validity-in-seconds: 3600 # 1시간
-  refresh-token-validity-in-seconds: 1209600 # 14일
+  access-token-validity-in-seconds: 3600
+  refresh-token-validity-in-seconds: 1209600
 
 cloud:
   aws:
