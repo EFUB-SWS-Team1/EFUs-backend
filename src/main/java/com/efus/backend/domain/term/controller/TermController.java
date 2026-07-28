@@ -26,14 +26,13 @@ public class TermController {
 
         TermCreateResponse response = termService.createTerm(organizationId, request);
 
-        // HTTP Status code: 201 Created 반환[cite: 4]
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success(response));
     }
 
 //    @GetMapping
 //    public ResponseEntity<ApiResponse<TermListResponse>> getTermList(
-//            @PathVariable("organizationId") Long organizationId) { // 기수 목록을 조회할 단체 ID[cite: 5]
+//            @PathVariable("organizationId") Long organizationId) {
 //
 //        TermListResponse response = termQueryService.getTermList(organizationId);
 //        return ResponseEntity.ok(ApiResponse.success(response));

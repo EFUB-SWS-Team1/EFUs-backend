@@ -1,11 +1,11 @@
 package com.efus.backend.domain.transaction.service;
 
-// TODO: funding,term 연관관계 + FundingQueryService,MemberQueryService,TermQueryService 병합 후 주석 해제
+// TODO: funding연관관계 + FundingQueryService,MemberQueryService 병합 후 주석 해제
 //import com.efus.backend.domain.funding.entity.Funding;
-//import com.efus.backend.domain.term.entity.OrganizationTerm;
 //import com.efus.backend.domain.funding.service.FundingQueryService;
 //import com.efus.backend.domain.member.service.MemberQueryService;
-//import com.efus.backend.domain.term.service.TermQueryService;
+import com.efus.backend.domain.term.entity.OrganizationTerm;
+import com.efus.backend.domain.term.service.TermQueryService;
 import com.efus.backend.domain.member.entity.TermMember;
 import com.efus.backend.domain.transaction.dto.internal.TransactionSnapshot;
 import com.efus.backend.domain.transaction.dto.request.TransactionCreateRequest;
@@ -37,53 +37,55 @@ public class TransactionService {
     private final TransactionRepository transactionRepository;
     private final TransactionHistoryRepository transactionHistoryRepository;
     private final TransactionQueryService transactionQueryService;
-//    private final TermQueryService termQueryService;
+    private final TermQueryService termQueryService;
+    // TODO: MemberQueryService 병합 후 주석 해제
 //    private final MemberQueryService memberQueryService;
+    // TODO: FundingQueryService 병합 후 주석 해제
 //    private final FundingQueryService fundingQueryService;
     private final ObjectMapper objectMapper;
 
-    // TODO: funding,term 연관관계 + FundingQueryService,MemberQueryService,TermQueryService 병합 후 주석 해제
-//    public TransactionResponse createTransaction(Long termId, TransactionCreateRequest request) {
-//        // TODO: TermQueryService 병합 후 주석 해제 (termId에 해당하는 기수 Entity를 조회하는 메서드)
-//        OrganizationTerm term = termQueryService.getTerm(termId);
+    public TransactionResponse createTransaction(Long termId, TransactionCreateRequest request) {
+        OrganizationTerm term = termQueryService.getTerm(termId);
 //
 //        // TODO: MemberQueryService 병합 후 주석 해제 (현재 로그인 사용자를 해당 기수의 TermMember로 조회하는 메서드)
 //        TermMember currentTermMember = memberQueryService.getCurrentTermMember(termId);
 //        // TODO: MemberQueryService 병합 후 주석 해제 (현재 로그인 사용자가 해당 기수의 STAFF인지 검증하는 메서드)
 //        memberQueryService.validateStaff(termId);
-//
-//        // TODO: TermQueryService 병합 후 주석 해제 (해당 기수가 ACTIVE 상태인지 검증하는 메서드)
-//        termQueryService.validateActiveTerm(termId);
-//
+
+        termQueryService.validateActiveTerm(termId);
+
+        // TODO: Funding 연관관계 병합 후 주석 해제
 //        Funding funding = getFundingOrNull(termId, request.fundingId());
-//
-//        Transaction transaction = Transaction.builder()
-////                .term(term)
-////                .funding(funding)
-////                .createdByTermMember(currentTermMember)
-//                .transactionType(request.transactionType())
-//                .title(request.title())
-//                .amount(request.amount())
-//                .transactionDate(request.transactionDate())
-//                .memo(request.memo())
-//                .build();
-//
-//        Transaction savedTransaction = transactionRepository.save(transaction);
-//
+
+        Transaction transaction = Transaction.builder()
+//                .term(term)
+//                .funding(funding)
+//                .createdByTermMember(currentTermMember)
+                .transactionType(request.transactionType())
+                .title(request.title())
+                .amount(request.amount())
+                .transactionDate(request.transactionDate())
+                .memo(request.memo())
+                .build();
+
+        Transaction savedTransaction = transactionRepository.save(transaction);
+
+        //TODO: TransactionResponse 병합 후 주석 해제
 //        return TransactionResponse.from(savedTransaction);
-//    }
+        return null;
+    }
 
-    // TODO: funding,term 연관관계 + FundingQueryService,MemberQueryService,TermQueryService 병합 후 주석 해제
-//    @Transactional(readOnly = true)
-//    public TransactionDetailResponse getTransaction(Long termId, Long transactionId) {
-//        Transaction transaction = transactionQueryService.getActiveTransactionInTerm(termId, transactionId);
-//        // TODO: MemberQueryService 병합 후 주석 해제 (현재 로그인 사용자가 해당 기수의 구성원인지 검증하는 메서드)
+    @Transactional(readOnly = true)
+    public TransactionDetailResponse getTransaction(Long termId, Long transactionId) {
+        Transaction transaction = transactionQueryService.getActiveTransactionInTerm(termId, transactionId);
+        // TODO: MemberQueryService 병합 후 주석 해제 (현재 로그인 사용자가 해당 기수의 구성원인지 검증하는 메서드)
 //        memberQueryService.validateTermMember(termId);
-//
+        //TODO: TransactionResponse 병합 후 주석 해제
 //        return TransactionDetailResponse.from(transaction);
-//    }
+        return null;
+    }
 
-    // TODO: funding,term 연관관계 + FundingQueryService,MemberQueryService,TermQueryService 병합 후 주석 해제
+    // TODO: funding연관관계 + FundingQueryService,MemberQueryService 병합 후 주석 해제
 //    public TransactionResponse updateTransaction(
 //            Long termId,
 //            Long transactionId,
@@ -123,7 +125,7 @@ public class TransactionService {
 //        return TransactionResponse.from(transaction);
 // }
 
-    // TODO: funding,term 연관관계 + FundingQueryService,MemberQueryService,TermQueryService 병합 후 주석 해제
+    // TODO: funding 연관관계 + FundingQueryService,MemberQueryService 병합 후 주석 해제
 //    public void deleteTransaction(Long termId, Long transactionId) {
 //        Transaction transaction = transactionQueryService.getActiveTransactionInTerm(termId, transactionId);
 //
@@ -145,7 +147,7 @@ public class TransactionService {
 //        );
 //    }
 
-    // TODO: funding,term 연관관계 + FundingQueryService,MemberQueryService,TermQueryService 병합 후 주석 해제
+    // TODO: funding연관관계 + FundingQueryService,MemberQueryService병합 후 주석 해제
 //    private Funding getFundingOrNull(Long termId, Long fundingId) {
 //        if (fundingId == null) {
 //            return null;
@@ -155,7 +157,7 @@ public class TransactionService {
 //        return fundingQueryService.getFundingInTerm(termId, fundingId);
 //    }
 
-    // TODO: funding,term 연관관계 + FundingQueryService,MemberQueryService,TermQueryService 병합 후 주석 해제
+    // TODO: funding연관관계 + FundingQueryService,MemberQueryService 병합 후 주석 해제
 //    private Funding resolveFundingForUpdate(
 //            Long termId,
 //            Transaction transaction,

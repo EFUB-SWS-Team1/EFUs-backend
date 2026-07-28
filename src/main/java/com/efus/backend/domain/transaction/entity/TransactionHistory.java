@@ -32,10 +32,9 @@ public class TransactionHistory {
     @JoinColumn(name = "transaction_id", nullable = false)
     private Transaction transaction;
 
-    // TODO: member 연관관계 병합 후 주석 해제
-//    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-//    @JoinColumn(name = "actor_term_member_id", nullable = false)
-//    private TermMember actorTermMember;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "actor_term_member_id", nullable = false)
+    private TermMember actorTermMember;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "action_type", nullable = false, length = 20)
@@ -64,8 +63,7 @@ public class TransactionHistory {
             LocalDateTime changedAt
     ) {
         this.transaction = transaction;
-        // TODO: member 연관관계 병합 후 주석 해제
-//        this.actorTermMember = actorTermMember;
+        this.actorTermMember = actorTermMember;
         this.actionType = actionType;
         this.summary = summary;
         this.beforeData = beforeData;

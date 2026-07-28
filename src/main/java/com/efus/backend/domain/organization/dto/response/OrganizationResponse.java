@@ -20,7 +20,6 @@ public record OrganizationResponse(
             Long memberCount
     ) {}
 
-    // Service에서 memberCount를 계산해서 넘겨주도록 파라미터 추가
     public static OrganizationResponse of(Organization org, OrganizationTerm term, TermMember termMember, Long memberCount) {
         ActiveTermDto activeTermDto = new ActiveTermDto(
                 term.getId(),

@@ -6,23 +6,23 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 public record TermCloseResponse(
-        Long termId, // 종료된 기수 ID[cite: 8]
-        String name, // 기수명[cite: 8]
-        LocalDate startDate, // 기수 시작일[cite: 8]
-        LocalDate endDate, // 기수 종료일[cite: 8]
-        String status, // CLOSED[cite: 8]
-        ClosedByDto closedBy, // 기수를 종료한 운영진 정보[cite: 8]
-        LocalDateTime closedAt // 실제 종료 처리 일시[cite: 8]
+        Long termId,
+        String name,
+        LocalDate startDate,
+        LocalDate endDate,
+        String status,
+        ClosedByDto closedBy,
+        LocalDateTime closedAt
 ) {
     public record ClosedByDto(
-            Long termMemberId, // 종료 처리자의 TermMember ID[cite: 8]
-            String name // 종료 처리자의 이름[cite: 8]
+            Long termMemberId,
+            String name
     ) {}
 
     public static TermCloseResponse of(OrganizationTerm term, TermMember closer) {
         ClosedByDto closedByDto = new ClosedByDto(
                 closer.getId(),
-                closer.getUser().getName() // User 엔티티에서 이름을 가져온다고 가정
+                closer.getUser().getName()
         );
 
         return new TermCloseResponse(
@@ -30,9 +30,9 @@ public record TermCloseResponse(
                 term.getName(),
                 term.getStartDate(),
                 term.getEndDate(),
-                term.getTermStatus().name(), // CLOSED
+                term.getTermStatus().name(),
                 closedByDto,
-                LocalDateTime.now() // 실제 종료 처리 일시
+                LocalDateTime.now()
         );
     }
 }
