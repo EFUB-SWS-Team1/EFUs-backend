@@ -1,17 +1,11 @@
 package com.efus.backend.infra.oauth.controller;
 
-import com.efus.backend.domain.user.entity.User;
-import com.efus.backend.domain.user.repository.UserRepository;
-import com.efus.backend.global.exception.CustomException;
-import com.efus.backend.global.exception.ErrorCode;
-import com.efus.backend.global.security.jwt.JwtProvider;
-import com.efus.backend.global.security.jwt.TokenStatus;
+import com.efus.backend.global.response.ApiResponse;
 import com.efus.backend.infra.oauth.dto.request.KakaoLoginRequest;
-import com.efus.backend.infra.oauth.dto.response.KakaoTokenResponse;
-import com.efus.backend.infra.oauth.dto.response.KakaoUserInfoResponse;
 import com.efus.backend.infra.oauth.dto.response.LoginResponse;
 import com.efus.backend.infra.oauth.dto.response.ReissueResponse;
 import com.efus.backend.infra.oauth.service.KakaoAuthService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -21,130 +15,60 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
+@RequestMapping("/api/auth")
 public class KakaoAuthController {
 
     private final KakaoAuthService kakaoAuthService;
-    private final JwtProvider jwtProvider;
-    private final UserRepository userRepository;
+    private static final long REFRESH_COOKIE_MAX_AGE = 1209600; // 14일
 
-    @PostMapping("/api/auth/kakao/login")
-    public ResponseEntity<LoginResponse> kakaoLogin(@RequestBody KakaoLoginRequest request) {
+    @PostMapping("/kakao/login")
+    public ResponseEntity<ApiResponse<LoginResponse>> kakaoLogin(@Valid @RequestBody KakaoLoginRequest request) {
 
-        if (request.authorizationCode() == null || request.authorizationCode().trim().isEmpty()) {
-            throw new CustomException(ErrorCode.AUTHORIZATION_CODE_REQUIRED);
-        }
+        KakaoAuthService.LoginResult result = kakaoAuthService.kakaoLogin(request.authorizationCode());
+        ResponseCookie cookie = createRefreshTokenCookie(result.refreshToken(), REFRESH_COOKIE_MAX_AGE);
 
-        KakaoTokenResponse tokenResponse = kakaoAuthService.getKakaoAccessToken(request.authorizationCode());
-        KakaoUserInfoResponse userInfo = kakaoAuthService.getKakaoUserInfo(tokenResponse.accessToken());
+        HttpStatus status = result.isNewUser() ? HttpStatus.CREATED : HttpStatus.OK;
+        String message = result.isNewUser() ? "회원가입 및 로그인 성공" : "로그인 성공";
 
-        KakaoAuthService.LoginProcessResult processResult = kakaoAuthService.loginOrSignUp(userInfo);
-        User dbUser = processResult.user();
-        boolean isNewUser = processResult.isNewUser();
-
-        String accessToken = jwtProvider.createAccessToken(dbUser.getId());
-        String refreshToken = jwtProvider.createRefreshToken(dbUser.getId());
-
-        LoginResponse.UserInfo userDto = new LoginResponse.UserInfo(
-                dbUser.getId(),
-                dbUser.getNickname(),
-                dbUser.getEmail(),
-                dbUser.getProfileImageUrl()
-        );
-
-        LoginResponse responseBody = new LoginResponse(
-                accessToken,
-                "Bearer",
-                3600,
-                isNewUser,
-                userDto
-        );
-
-        ResponseCookie cookie = ResponseCookie.from("refreshToken", refreshToken) // Refresh Token 삽입
-                .httpOnly(true)
-                .secure(true)
-                .sameSite("None")
-                .path("/")
-                .build();
-
-        return ResponseEntity.ok()
+        return ResponseEntity.status(status)
                 .header(HttpHeaders.SET_COOKIE, cookie.toString())
-                .body(responseBody);
+                .body(ApiResponse.success(result.loginResponse(), message));
     }
 
-    @PostMapping("/api/auth/reissue")
-    public ResponseEntity<ReissueResponse> reissueToken(
+    @PostMapping("/reissue")
+    public ResponseEntity<ApiResponse<ReissueResponse>> reissueToken(
             @CookieValue(value = "refreshToken", required = false) String refreshToken) {
 
-        if (refreshToken == null) {
-            throw new CustomException(ErrorCode.REFRESH_TOKEN_REQUIRED);
+        KakaoAuthService.ReissueResult result = kakaoAuthService.reissue(refreshToken);
+        ResponseEntity.BodyBuilder responseBuilder = ResponseEntity.ok();
+
+        if (result.rotated()) {
+            ResponseCookie newCookie = createRefreshTokenCookie(result.newRefreshToken(), REFRESH_COOKIE_MAX_AGE);
+            responseBuilder.header(HttpHeaders.SET_COOKIE, newCookie.toString());
         }
 
-        TokenStatus status = jwtProvider.validateToken(refreshToken);
-        if (status == TokenStatus.EXPIRED) {
-            throw new CustomException(ErrorCode.EXPIRED_REFRESH_TOKEN);
-        } else if (status == TokenStatus.INVALID) {
-            throw new CustomException(ErrorCode.INVALID_REFRESH_TOKEN);
-        }
-
-        Long userId = jwtProvider.getUserIdFromToken(refreshToken);
-
-        userRepository.findById(userId)
-                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
-
-        String newAccessToken = jwtProvider.createAccessToken(userId);
-        String newRefreshToken = jwtProvider.createRefreshToken(userId);
-
-        ReissueResponse responseBody = new ReissueResponse(
-                newAccessToken,
-                "Bearer",
-                3600,
-                true
-        );
-
-        ResponseCookie cookie = ResponseCookie.from("refreshToken", newRefreshToken)
-                .httpOnly(true)
-                .secure(true)
-                .sameSite("None")
-                .path("/")
-                .build();
-
-        return ResponseEntity.ok()
-                .header(HttpHeaders.SET_COOKIE, cookie.toString())
-                .body(responseBody);
+        return responseBuilder.body(ApiResponse.success(result.reissueResponse(), "토큰 재발급 성공"));
     }
 
-    @PostMapping("/api/auth/logout")
-    public ResponseEntity<Void> logout(
-            @RequestHeader(value = "Authorization", required = false) String authorization,
+    @PostMapping("/logout")
+    public ResponseEntity<ApiResponse<Void>> logout(
             @CookieValue(value = "refreshToken", required = false) String refreshToken) {
 
-        if (authorization == null || !authorization.startsWith("Bearer ")) {
-            throw new CustomException(ErrorCode.UNAUTHORIZED);
-        }
-        String accessToken = authorization.substring(7);
+        kakaoAuthService.logout(refreshToken);
+        ResponseCookie deleteCookie = createRefreshTokenCookie("", 0);
 
-        if (jwtProvider.validateToken(accessToken) != TokenStatus.VALID) {
-            throw new CustomException(ErrorCode.UNAUTHORIZED);
-        }
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, deleteCookie.toString())
+                .body(ApiResponse.successWithoutData());
+    }
 
-        if (refreshToken == null) {
-            throw new CustomException(ErrorCode.REFRESH_TOKEN_REQUIRED);
-        }
-
-        if (jwtProvider.validateToken(refreshToken) != TokenStatus.VALID) {
-            throw new CustomException(ErrorCode.INVALID_REFRESH_TOKEN);
-        }
-
-        ResponseCookie cookie = ResponseCookie.from("refreshToken", "")
-                .maxAge(0)
+    private ResponseCookie createRefreshTokenCookie(String token, long maxAge) {
+        return ResponseCookie.from("refreshToken", token)
                 .httpOnly(true)
                 .secure(true)
                 .sameSite("None")
                 .path("/")
-                .build();
-
-        return ResponseEntity.noContent()
-                .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                .maxAge(maxAge)
                 .build();
     }
 }

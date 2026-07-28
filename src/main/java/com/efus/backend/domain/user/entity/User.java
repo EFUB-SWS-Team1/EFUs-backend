@@ -17,13 +17,13 @@ public class User extends BaseEntity {
     private Long id;
 
     @Column(nullable = false, unique = true)
-    private String kakaoId;
+    private Long kakaoId;
 
     @Column
     private String email;
 
     @Column(nullable = false)
-    private String nickname;
+    private String name;
 
     @Column
     private String profileImageUrl;
@@ -33,10 +33,10 @@ public class User extends BaseEntity {
     private Status status;
 
     @Builder
-    public User(String kakaoId, String email, String nickname, String profileImageUrl, Status status) {
+    public User(Long kakaoId, String email, String name, String profileImageUrl, Status status) {
         this.kakaoId = kakaoId;
         this.email = email;
-        this.nickname = nickname;
+        this.name = name;
         this.profileImageUrl = profileImageUrl;
         this.status = status;
     }
