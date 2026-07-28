@@ -1,0 +1,27 @@
+package com.efus.backend.domain.user.controller;
+
+import com.efus.backend.domain.user.dto.response.UserInfoResponse;
+import com.efus.backend.domain.user.service.UserService;
+import com.efus.backend.global.response.ApiResponse;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+@RequiredArgsConstructor
+public class UserController {
+
+    private final UserService userService;
+
+    // 내 정보 조회
+    @GetMapping("/api/users/me")
+    public ResponseEntity<ApiResponse<UserInfoResponse>> getMyInfo(
+            @RequestHeader(value = "Authorization", required = false) String authorization) {
+
+        UserInfoResponse result = userService.getMyInfo(authorization);
+
+        return ResponseEntity.ok(ApiResponse.success(result));
+    }
+}
