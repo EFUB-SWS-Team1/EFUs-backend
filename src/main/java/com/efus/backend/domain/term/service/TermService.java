@@ -1,8 +1,10 @@
 package com.efus.backend.domain.term.service;
 
 import com.efus.backend.domain.member.repository.TermMemberRepository;
+import com.efus.backend.domain.term.dto.request.TermCloseRequest;
 import com.efus.backend.domain.term.dto.request.TermCreateRequest;
 import com.efus.backend.domain.term.dto.request.TermUpdateRequest;
+import com.efus.backend.domain.term.dto.response.TermCloseResponse;
 import com.efus.backend.domain.term.dto.response.TermCreateResponse;
 import com.efus.backend.domain.term.dto.response.TermListResponse;
 import com.efus.backend.domain.term.dto.response.TermUpdateResponse;
@@ -96,5 +98,41 @@ public class TermService {
 
         // 6. 뼈대 반환
         return TermUpdateResponse.from(term);
+    }
+
+    @Transactional
+    public TermCloseResponse closeTerm(Long termId, TermCloseRequest request) {
+        User user = currentUserService.getCurrentUser();
+
+        // 1. 기수 조회 (없으면 404 TERM_NOT_FOUND)[cite: 8]
+        OrganizationTerm term = null; // 임시: termQueryService.getTerm(termId);
+
+        // TODO 2. 상태 검증: 이미 종료된 기수인지 확인 (409 TERM_ALREADY_CLOSED)[cite: 8]
+        if (term.getTermStatus() == TermStatus.CLOSED) {
+            // throw new CustomException(ErrorCode.TERM_ALREADY_CLOSED);[cite: 8]
+        }
+
+        // TODO 3. 권한 검증: 요청자가 해당 기수의 STAFF인지 확인 (403 STAFF_PERMISSION_REQUIRED)[cite: 8]
+        // 권한 확인 후 해당 요청자의 TermMember 객체(closer)를 가져와야 합니다.
+
+        // TODO 4. 날짜 검증: 기수 종료일이 기수 시작일보다 빠른지 확인 (400 END_DATE_BEFORE_START_DATE)[cite: 8]
+        if (request.endDate().isBefore(term.getStartDate())) {
+            // throw new CustomException(ErrorCode.END_DATE_BEFORE_START_DATE);[cite: 8]
+        }
+
+        // 5. 서버 처리 내용 1, 2: 기수 상태를 CLOSED로 변경 및 종료일 저장[cite: 8]
+        // term.close(request.endDate()); // 엔티티 내부에 상태 변경 메서드 구현 필요
+
+        // TODO 6. 서버 처리 내용 3: 해당 기수의 STAFF·MEMBER 초대 코드 비활성화[cite: 8]
+        // invitationService.deactivateCodesByTerm(term);
+
+        // TODO 7. 서버 처리 내용 4: 기수 종료 이력 저장[cite: 8]
+        // termHistoryRepository.save(...);
+
+        // (서버 처리 내용 5: 쓰기 작업 차단은 이후 다른 API들의 인터셉터나 서비스 검증 로직에서 활성 기수인지 체크하는 방식으로 적용됩니다)[cite: 8]
+
+        // 8. 뼈대 반환
+        // return TermCloseResponse.of(term, closer);
+        return null;
     }
 }

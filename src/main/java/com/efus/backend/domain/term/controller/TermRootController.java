@@ -1,11 +1,14 @@
 package com.efus.backend.domain.term.controller;
 
+import com.efus.backend.domain.term.dto.request.TermCloseRequest;
 import com.efus.backend.domain.term.dto.request.TermUpdateRequest;
+import com.efus.backend.domain.term.dto.response.TermCloseResponse;
 import com.efus.backend.domain.term.dto.response.TermDetailResponse;
 import com.efus.backend.domain.term.dto.response.TermUpdateResponse;
 import com.efus.backend.domain.term.service.TermQueryService;
 import com.efus.backend.domain.term.service.TermService;
 import com.efus.backend.global.response.ApiResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -32,6 +35,15 @@ public class TermRootController { // URI 최상단이 /api/terms 인 경우를 �
             @RequestBody TermUpdateRequest request) {
 
         TermUpdateResponse response = termService.updateTerm(termId, request);
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+    @PatchMapping("/api/terms/{termId}/close")
+    public ResponseEntity<ApiResponse<TermCloseResponse>> closeTerm(
+            @PathVariable("termId") Long termId, // 종료할 기수 ID[cite: 8]
+            @Valid @RequestBody TermCloseRequest request) {
+
+        TermCloseResponse response = termService.closeTerm(termId, request);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 }
