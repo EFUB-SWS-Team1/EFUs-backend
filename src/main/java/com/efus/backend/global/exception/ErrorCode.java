@@ -22,6 +22,10 @@ public enum ErrorCode {
     // 잘못된 요청
     USER_NOT_FOUND(404, "Not Found", "USER_NOT_FOUND", "사용자 정보를 찾을 수 없습니다."),
 
+
+    TERM_NOT_FOUND(404, "Not Found", "TERM_NOT_FOUND", "기수를 찾을 수 없습니다."),
+    TERM_CLOSED(400, "Bad Request", "TERM_CLOSED", "현재 활성화된 기수가 아닙니다."),
+
     // 서버 관련
     KAKAO_API_ERROR(502, "Bad Gateway","KAKAO_API_ERROR", "카카오 서버와 통신하는 중 오류가 발생했습니다."),
 
