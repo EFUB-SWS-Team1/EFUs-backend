@@ -1,8 +1,10 @@
 package com.efus.backend.domain.transaction.entity;
 
-import com.efus.backend.domain.funding.entity.Funding;
+// TODO: funding 연관관계 병합 후 주석 해제
+//import com.efus.backend.domain.funding.entity.Funding;
+// TODO: term 연관관계 병합 후 주석 해제
+//import com.efus.backend.domain.term.entity.OrganizationTerm;
 import com.efus.backend.domain.member.entity.TermMember;
-import com.efus.backend.domain.term.entity.OrganizationTerm;
 import com.efus.backend.global.domain.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -32,25 +34,30 @@ public class Transaction extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "term_id", nullable = false)
-    private OrganizationTerm term;
+    // TODO: term 연관관계 병합 후 주석 해제
+//    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+//    @JoinColumn(name = "term_id", nullable = false)
+//    private OrganizationTerm term;
 
+    // TODO: funding 연관관계 병합 후 주석 해제
 //    @ManyToOne(fetch = FetchType.LAZY)
 //    @JoinColumn(name = "funding_id")
 //    private Funding funding;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "created_by_term_member_id", nullable = false)
-    private TermMember createdByTermMember;
+    // TODO: member 연관관계 병합 후 주석 해제
+//    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+//    @JoinColumn(name = "created_by_term_member_id", nullable = false)
+//    private TermMember createdByTermMember;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "updated_by_term_member_id")
-    private TermMember updatedByTermMember;
+    // TODO: member 연관관계 병합 후 주석 해제
+//    @ManyToOne(fetch = FetchType.LAZY)
+//    @JoinColumn(name = "updated_by_term_member_id")
+//    private TermMember updatedByTermMember;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "deleted_by_term_member_id")
-    private TermMember deletedByTermMember;
+    // TODO: member 연관관계 병합 후 주석 해제
+//    @ManyToOne(fetch = FetchType.LAZY)
+//    @JoinColumn(name = "deleted_by_term_member_id")
+//    private TermMember deletedByTermMember;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "transaction_type", nullable = false, length = 20)
@@ -76,7 +83,9 @@ public class Transaction extends BaseEntity {
 
     @Builder
     public Transaction(
-            OrganizationTerm term,
+            // TODO: term 연관관계 병합 후 주석 해제
+//            OrganizationTerm term,
+            // TODO: funding 연관관계 병합 후 주석 해제
 //            Funding funding,
             TermMember createdByTermMember,
             TransactionType transactionType,
@@ -85,9 +94,12 @@ public class Transaction extends BaseEntity {
             LocalDate transactionDate,
             String memo
     ) {
-        this.term = term;
+        // TODO: term 연관관계 병합 후 주석 해제
+//        this.term = term;
+        // TODO: funding 연관관계 병합 후 주석 해제
 //        this.funding = funding;
-        this.createdByTermMember = createdByTermMember;
+        // TODO: member 연관관계 병합 후 주석 해제
+//        this.createdByTermMember = createdByTermMember;
         this.transactionType = transactionType;
         this.title = title;
         this.amount = amount;
@@ -97,6 +109,7 @@ public class Transaction extends BaseEntity {
     }
 
     public void update(
+            // TODO: funding 연관관계 병합 후 주석 해제
 //            Funding funding,
             TermMember updatedByTermMember,
             TransactionType transactionType,
@@ -105,8 +118,10 @@ public class Transaction extends BaseEntity {
             LocalDate transactionDate,
             String memo
     ) {
+        // TODO: funding 연관관계 병합 후 주석 해제
 //        this.funding = funding;
-        this.updatedByTermMember = updatedByTermMember;
+        // TODO: member 연관관계 병합 후 주석 해제
+//        this.updatedByTermMember = updatedByTermMember;
         this.transactionType = transactionType;
         this.title = title;
         this.amount = amount;
@@ -116,7 +131,8 @@ public class Transaction extends BaseEntity {
 
     public void softDelete(TermMember deletedByTermMember, LocalDateTime deletedAt) {
         this.deleted = true;
-        this.deletedByTermMember = deletedByTermMember;
+        // TODO: member 연관관계 병합 후 주석 해제
+//        this.deletedByTermMember = deletedByTermMember;
         this.deletedAt = deletedAt;
     }
 
