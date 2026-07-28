@@ -21,3 +21,12 @@ cloud:
     credentials:
       access-key: test-access-key
       secret-key: test-secret-key
+
+kakao:
+  client-id: test-kakao-client-id
+  redirect-uri: http://localhost:3000/kakao/login
+
+jwt:
+  secret: TestJwtSecretKeyForEfusApplicationAtLeast32BytesLong
+  access-token-validity-in-seconds: 3600
+  refresh-token-validity-in-seconds: 1209600
