@@ -11,13 +11,12 @@ public record TermCreateResponse(
         String organizationName,
         String name,
         LocalDate startDate,
-        LocalDate endDate, // 생성 직후 null[cite: 4]
-        String status, // ACTIVE[cite: 4]
+        LocalDate endDate,
+        String status,
         Long myTermMemberId,
-        String myRole, // STAFF[cite: 4]
+        String myRole,
         LocalDateTime createdAt
 ) {
-    // 실제 구현 시 TermMember 엔티티를 받아 ID와 Role을 주입합니다.
     public static TermCreateResponse of(OrganizationTerm term, Organization org, Long myTermMemberId, String myRole) {
         return new TermCreateResponse(
                 term.getId(),

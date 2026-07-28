@@ -15,15 +15,14 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
-public class TermRootController { // URI 최상단이 /api/terms 인 경우를 처리할 컨트롤러
+public class TermRootController {
 
     private final TermQueryService termQueryService;
     private final TermService termService;
 
-    // 기수 상세 조회[cite: 6]
     @GetMapping("/api/terms/{termId}")
     public ResponseEntity<ApiResponse<TermDetailResponse>> getTermDetail(
-            @PathVariable("termId") Long termId) { // 조회할 기수 ID[cite: 6]
+            @PathVariable("termId") Long termId) {
 
         TermDetailResponse response = termQueryService.getTermDetail(termId);
         return ResponseEntity.ok(ApiResponse.success(response));
@@ -31,7 +30,7 @@ public class TermRootController { // URI 최상단이 /api/terms 인 경우를 �
 
     @PatchMapping("/api/terms/{termId}")
     public ResponseEntity<ApiResponse<TermUpdateResponse>> updateTerm(
-            @PathVariable("termId") Long termId, // 수정할 기수 ID[cite: 7]
+            @PathVariable("termId") Long termId,
             @RequestBody TermUpdateRequest request) {
 
         TermUpdateResponse response = termService.updateTerm(termId, request);
@@ -40,7 +39,7 @@ public class TermRootController { // URI 최상단이 /api/terms 인 경우를 �
 
     @PatchMapping("/api/terms/{termId}/close")
     public ResponseEntity<ApiResponse<TermCloseResponse>> closeTerm(
-            @PathVariable("termId") Long termId, // 종료할 기수 ID[cite: 8]
+            @PathVariable("termId") Long termId,
             @Valid @RequestBody TermCloseRequest request) {
 
         TermCloseResponse response = termService.closeTerm(termId, request);
