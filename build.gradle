@@ -36,6 +36,7 @@ dependencies {
 	implementation 'software.amazon.awssdk:s3'
 	implementation 'org.springframework.boot:spring-boot-starter-security'
 	testRuntimeOnly 'com.h2database:h2'
+	implementation 'software.amazon.awssdk:textract'
 }
 
 tasks.named('test') {
