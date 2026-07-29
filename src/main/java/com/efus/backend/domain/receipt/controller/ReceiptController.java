@@ -13,6 +13,7 @@ import com.efus.backend.domain.receipt.dto.request.ReceiptRequest;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.DeleteMapping;
 
 @RestController
 @RequiredArgsConstructor
@@ -38,5 +39,14 @@ public class ReceiptController {
         ReceiptResponse response = receiptService.createOrReplaceReceiptUploadUrl(transactionId, request);
 
         return ResponseEntity.ok(ApiResponse.success(response, "영수증 업로드 URL이 생성되었습니다."));
+    }
+
+    @DeleteMapping
+    public ResponseEntity<Void> deleteReceipt(
+            @PathVariable Long transactionId
+    ) {
+        receiptService.deleteReceipt(transactionId);
+
+        return ResponseEntity.noContent().build();
     }
 }

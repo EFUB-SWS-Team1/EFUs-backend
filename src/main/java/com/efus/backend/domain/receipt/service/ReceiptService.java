@@ -15,7 +15,9 @@ import com.efus.backend.infra.s3.S3Service;
 import com.efus.backend.domain.member.entity.TermMember;
 import com.efus.backend.domain.receipt.dto.request.ReceiptRequest;
 import com.efus.backend.infra.s3.S3PresignedUrlResponse;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -98,6 +100,40 @@ public class ReceiptService {
 
 //        return ReceiptResponse.from(receipt, s3Response.presignedUrl());
         return null;
+    }
+
+    @Transactional
+    public void deleteReceipt(Long transactionId) {
+        Transaction transaction = transactionQueryService.getTransaction(transactionId);
+
+        Long termId = transaction.getTerm().getId();
+
+        // TODO: MemberQueryService 병합 후 주석 해제
+        // memberQueryService.validateStaff(termId);
+
+        termQueryService.validateActiveTerm(termId);
+
+        if (transaction.isDeleted()) {
+            throw new CustomException(ErrorCode.TRANSACTION_ALREADY_DELETED);
+        }
+
+        Receipt receipt = receiptRepository.findByTransaction_Id(transactionId)
+                .orElseThrow(() -> new CustomException(ErrorCode.RECEIPT_NOT_FOUND));
+
+//        s3Service.delete(receipt.getStorageKey());
+//
+//        receiptRepository.delete(receipt);
+//
+
+        String storageKey = receipt.getStorageKey();
+
+        receiptRepository.delete(receipt);
+
+        try {
+            s3Service.delete(storageKey);
+        } catch (Exception e) {
+            log.warn("S3 영수증 파일 삭제 실패. storageKey={}", storageKey, e);
+        }
     }
 
 }
