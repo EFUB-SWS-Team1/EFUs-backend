@@ -14,6 +14,8 @@ import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import com.efus.backend.domain.receipt.dto.response.ReceiptOcrResponse;
 
 @RestController
 @RequiredArgsConstructor
@@ -48,5 +50,14 @@ public class ReceiptController {
         receiptService.deleteReceipt(transactionId);
 
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/ocr")
+    public ResponseEntity<ApiResponse<ReceiptOcrResponse>> recognizeReceiptAmount(
+            @PathVariable Long transactionId
+    ) {
+        ReceiptOcrResponse response = receiptService.recognizeReceiptAmount(transactionId);
+
+        return ResponseEntity.ok(ApiResponse.success(response, "OCR 금액 인식이 완료되었습니다."));
     }
 }

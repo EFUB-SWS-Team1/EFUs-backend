@@ -16,6 +16,7 @@ import com.efus.backend.domain.member.entity.TermMember;
 import com.efus.backend.domain.receipt.dto.request.ReceiptRequest;
 import com.efus.backend.infra.s3.S3PresignedUrlResponse;
 import lombok.extern.slf4j.Slf4j;
+import com.efus.backend.domain.receipt.dto.response.ReceiptOcrResponse;
 
 @Slf4j
 @Service
@@ -25,6 +26,7 @@ public class ReceiptService {
     private final ReceiptRepository receiptRepository;
     private final TransactionQueryService transactionQueryService;
     private final S3Service s3Service;
+    private final ReceiptOcrService receiptOcrService;
 
     // TODO: MemberQueryService 병합 후 주석 해제
     // private final MemberQueryService memberQueryService;
@@ -134,6 +136,36 @@ public class ReceiptService {
         } catch (Exception e) {
             log.warn("S3 영수증 파일 삭제 실패. storageKey={}", storageKey, e);
         }
+    }
+
+    public ReceiptOcrResponse recognizeReceiptAmount(Long transactionId) {
+        Transaction transaction = transactionQueryService.getTransaction(transactionId);
+
+        Long termId = transaction.getTerm().getId();
+
+        // TODO: MemberQueryService 병합 후 주석 해제
+        // memberQueryService.validateStaff(termId);
+
+        termQueryService.validateActiveTerm(termId);
+
+        if (transaction.isDeleted()) {
+            throw new CustomException(ErrorCode.TRANSACTION_ALREADY_DELETED);
+        }
+
+        Receipt receipt = receiptRepository.findByTransaction_Id(transactionId)
+                .orElseThrow(() -> new CustomException(ErrorCode.RECEIPT_NOT_FOUND));
+
+        Long recognizedAmount = receiptOcrService.recognizeAmount(receipt.getStorageKey());
+
+        if (recognizedAmount == null || recognizedAmount <= 0) {
+            throw new CustomException(ErrorCode.RECEIPT_OCR_FAILED);
+        }
+
+        return ReceiptOcrResponse.of(
+                transactionId,
+                receipt.getId(),
+                recognizedAmount
+        );
     }
 
 }
