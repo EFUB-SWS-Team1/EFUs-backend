@@ -1,17 +1,30 @@
-//Temporary OCR Implementation
-
 package com.efus.backend.domain.receipt.service;
 
 import com.efus.backend.global.exception.CustomException;
 import com.efus.backend.global.exception.ErrorCode;
+import com.efus.backend.infra.ocr.TextractOcrClient;
+import java.util.List;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class DefaultReceiptOcrService implements ReceiptOcrService {
+
+    private final TextractOcrClient textractOcrClient;
+    private final ReceiptAmountParser receiptAmountParser;
 
     @Override
     public Long recognizeAmount(String storageKey) {
-        // TODO: OCR Provider 연동 후 storageKey 기준 영수증 이미지에서 금액 인식 로직 구현
-        throw new CustomException(ErrorCode.RECEIPT_OCR_FAILED);
+        try {
+            List<String> lines = textractOcrClient.extractLines(storageKey);
+
+            return receiptAmountParser.parseAmount(lines)
+                    .orElseThrow(() -> new CustomException(ErrorCode.RECEIPT_OCR_FAILED));
+        } catch (CustomException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new CustomException(ErrorCode.RECEIPT_OCR_FAILED);
+        }
     }
 }
