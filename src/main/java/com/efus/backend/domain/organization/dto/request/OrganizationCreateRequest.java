@@ -34,7 +34,8 @@ public record OrganizationCreateRequest(
                         .createdByUser(user)
                         .name(this.initialTermName())
                         .startDate(this.initialTermStartDate())
-                        .termStatus(TermStatus.ACTIVE)
+                        .endDate(null) // 생성 직후에는 null
+                        .termStatus(TermStatus.ACTIVE) // 생성 직후에는 ACTIVE
                         .build();
         }
 }

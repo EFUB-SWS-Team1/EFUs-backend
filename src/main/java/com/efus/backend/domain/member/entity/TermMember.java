@@ -47,33 +47,26 @@ public class TermMember extends BaseEntity {
     @Column(name = "joined_at", nullable = false)
     private LocalDateTime joinedAt;
 
-    @Builder
-    public TermMember(OrganizationTerm term, User user, TermMemberRole role, TermMemberStatus status, LocalDateTime joinedAt) {
+    private TermMember(
+            OrganizationTerm term,
+            User user,
+            TermMemberRole role,
+            LocalDateTime joinedAt
+    ) {
         this.term = term;
         this.user = user;
         this.role = role;
-        this.status = status;
-        this.joinedAt = (joinedAt != null) ? joinedAt : LocalDateTime.now();
-//    private TermMember(
-//            OrganizationTerm term,
-//            User user,
-//            TermMemberRole role,
-//            LocalDateTime joinedAt
-//    ) {
-//        this.term = term;
-//        this.user = user;
-//        this.role = role;
-//        this.status = TermMemberStatus.ACTIVE;
-//        this.joinedAt = joinedAt;
-//    }
-//
-//    public static TermMember create(
-//            OrganizationTerm term,
-//            User user,
-//            TermMemberRole role,
-//            LocalDateTime joinedAt
-//    ) {
-//        return new TermMember(term, user, role, joinedAt);
+        this.status = TermMemberStatus.ACTIVE;
+        this.joinedAt = joinedAt;
+    }
+
+    public static TermMember create(
+            OrganizationTerm term,
+            User user,
+            TermMemberRole role,
+            LocalDateTime joinedAt
+    ) {
+        return new TermMember(term, user, role, joinedAt);
     }
 
     public boolean isStaff() {
