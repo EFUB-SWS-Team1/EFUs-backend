@@ -1,6 +1,7 @@
 package com.efus.backend.domain.organization.service;
 
 import com.efus.backend.domain.invitation.repository.InvitationRepository;
+import com.efus.backend.domain.invitation.service.InvitationCommandService;
 import com.efus.backend.domain.member.entity.TermMember;
 import com.efus.backend.domain.member.entity.TermMemberRole;
 import com.efus.backend.domain.member.repository.MemberRepository;
@@ -31,7 +32,7 @@ public class OrganizationService {
     private final OrganizationRepository organizationRepository;
     private final TermRepository termRepository;
     private final MemberRepository memberRepository;
-    private final InvitationRepository invitationRepository;
+    private final InvitationCommandService invitationCommandService;
 
     // 단체 생성
     @Transactional
@@ -56,13 +57,10 @@ public class OrganizationService {
         );
         memberRepository.save(staffMember);
 
-        // TODO: 4. 첫 기수의 STAFF용 초대 코드 생성
+        // 4. 첫 기수의 STAFF/MEMBER용 초대 코드 생성
+        invitationCommandService.createDefaultInvitations(term, staffMember);
 
-        // TODO: 5. 첫 기수의 MEMBER용 초대 코드 생성
-
-        // 응답 반환
-        //return OrganizationCreateResponse.of(organization, term, termMember);
-        return null;
+        return OrganizationCreateResponse.of(organization, term, staffMember);
     }
 
 //    @Transactional(readOnly = true)
