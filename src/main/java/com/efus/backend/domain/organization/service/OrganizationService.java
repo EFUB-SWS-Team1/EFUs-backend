@@ -97,13 +97,31 @@ public class OrganizationService {
         // 권한 검증
         validateOrganizationMember(organizationId, user.getId());
 
-        // TODO 4. 현재 활성 기수(ACTIVE) 조회 및 DTO 변환
-        // 활성 기수가 있으면 멤버 수(memberCount)와 내 역할(myRole)도 함께 조회
+        // 현재 활성 기수 조회
+        OrganizationTerm activeTerm = termRepository.findByOrganizationIdAndTermStatus(organizationId, TermStatus.ACTIVE)
+                .orElse(null);
 
-        // TODO 5. 최근 종료 기수(CLOSED) 조회 및 DTO 변환
+        Long memberCount = null;
+        TermMember myActiveMember = null;
 
-        // 6. 뼈대 반환 (실제 구현 시 조립된 DTO 반환)
-        return null;
+        // 활성 기수가 존재할 때만 멤버 수와 내 역할을 조회
+        if (activeTerm != null) {
+            memberCount = termMemberRepository.countByTermId(activeTerm.getId());
+            myActiveMember = termMemberRepository.findByTermIdAndUserId(activeTerm.getId(), user.getId())
+                    .orElse(null);
+        }
+
+        // 최근 종료 기수 조회
+        OrganizationTerm recentClosedTerm = termRepository.findTopByOrganizationIdAndTermStatusOrderByEndDateDesc(organizationId, TermStatus.CLOSED)
+                .orElse(null);
+
+        return OrganizationDetailResponse.of(
+                organization,
+                activeTerm,
+                recentClosedTerm,
+                memberCount,
+                myActiveMember
+        );
     }
 
     private void validateOrganizationMember(Long organizationId, Long userId) {

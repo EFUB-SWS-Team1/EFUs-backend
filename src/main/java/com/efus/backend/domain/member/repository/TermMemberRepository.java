@@ -32,4 +32,7 @@ public interface TermMemberRepository extends JpaRepository<TermMember, Long> {
 
      // User가 특정 단체의 어떤 기수에 속한 적 있는지 확인
     boolean existsByTerm_Organization_IdAndUser_Id(Long organizationId, Long userId);
+
+    // 특정 기수의 총 멤버 수 계산
+    long countByTermId(Long termId);
 }
