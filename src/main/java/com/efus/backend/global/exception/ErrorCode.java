@@ -47,7 +47,14 @@ public enum ErrorCode {
     INVITATION_CODE_REQUIRED(400, "Bad Request", "INVITATION_CODE_REQUIRED", "초대 코드는 필수입니다."),
     TERM_MEMBER_ALREADY_EXISTS(409, "Conflict", "TERM_MEMBER_ALREADY_EXISTS", "이미 가입한 기수입니다."),
     INVITATION_JOIN_FAILED(500, "Internal Server Error", "INVITATION_JOIN_FAILED", "기수 가입 처리 중 오류가 발생했습니다."),
-    INVITATION_CODE_GENERATION_FAILED(500, "Internal Server Error", "INVITATION_CODE_GENERATION_FAILED", "초대 코드 생성에 실패했습니다.");
+    INVITATION_CODE_GENERATION_FAILED(500, "Internal Server Error", "INVITATION_CODE_GENERATION_FAILED", "초대 코드 생성에 실패했습니다."),
+
+    // Receipt 관련
+    RECEIPT_NOT_FOUND(404, "Not Found", "RECEIPT_NOT_FOUND", "영수증을 찾을 수 없습니다."),
+    INVALID_RECEIPT_FILE(400, "Bad Request", "INVALID_RECEIPT_FILE", "올바르지 않은 영수증 파일입니다."),
+    RECEIPT_UPLOAD_FAILED(500, "Internal Server Error", "RECEIPT_UPLOAD_FAILED", "영수증 업로드에 실패했습니다."),
+    RECEIPT_DELETE_FAILED(500, "Internal Server Error", "RECEIPT_DELETE_FAILED", "영수증 삭제에 실패했습니다."),
+    RECEIPT_OCR_FAILED(500, "Internal Server Error", "RECEIPT_OCR_FAILED", "영수증 OCR 금액 인식에 실패했습니다.");
 
     private final int status;
     private final String error;

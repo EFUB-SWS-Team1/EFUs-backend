@@ -1,21 +1,25 @@
 package com.efus.backend.infra.s3;
 
-import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
-import software.amazon.awssdk.core.sync.RequestBody;
-import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
-import software.amazon.awssdk.services.s3.model.GetUrlRequest;
-import software.amazon.awssdk.services.s3.model.PutObjectRequest;
-
-import java.io.IOException;
+import com.efus.backend.global.exception.CustomException;
+import com.efus.backend.global.exception.ErrorCode;
+import java.time.Duration;
 import java.util.Set;
 import java.util.UUID;
+import org.springframework.stereotype.Service;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.presigner.S3Presigner;
+import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
+import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
 
 @Service
 public class S3Service {
 
     private static final long MAX_FILE_SIZE = 10 * 1024 * 1024;
+    private static final Duration PRESIGNED_URL_EXPIRATION = Duration.ofMinutes(10);
+
     private static final Set<String> ALLOWED_CONTENT_TYPES = Set.of(
             "image/jpeg",
             "image/png",
@@ -23,53 +27,51 @@ public class S3Service {
     );
 
     private final S3Client s3Client;
+    private final S3Presigner s3Presigner;
     private final S3Properties properties;
 
-    public S3Service(S3Client s3Client, S3Properties properties) {
+    public S3Service(S3Client s3Client, S3Presigner s3Presigner, S3Properties properties) {
         this.s3Client = s3Client;
+        this.s3Presigner = s3Presigner;
         this.properties = properties;
     }
 
-    // 영수증 이미지 파일을 검증한 뒤 S3에 업로드하고, 저장된 파일 정보를 반환
-    public S3UploadResponse uploadReceiptImage(MultipartFile file) {
-        validateImageFile(file);
+    public S3PresignedUrlResponse generateReceiptUploadUrl(
+            Long transactionId,
+            String originalFilename,
+            String contentType,
+            Long fileSize
+    ) {
+        validateReceiptFile(originalFilename, contentType, fileSize);
 
-        String storageKey = createReceiptStorageKey(file);
-        String bucket = properties.s3().bucket();
-        String contentType = file.getContentType();
+        String storageKey = createReceiptStorageKey(transactionId, contentType);
+        String presignedUrl = generateUploadPresignedUrl(storageKey, contentType);
 
-        PutObjectRequest putObjectRequest = PutObjectRequest.builder()
-                .bucket(bucket)
-                .key(storageKey)
-                .contentType(contentType)
-                .contentLength(file.getSize())
-                .build();
-        try {
-            s3Client.putObject(
-                    putObjectRequest,
-                    RequestBody.fromInputStream(file.getInputStream(), file.getSize())
-            );
-        } catch (IOException e) {
-            throw new IllegalStateException("Failed to read upload file.", e);
-        }
-
-        String imageUrl = s3Client.utilities()
-                .getUrl(GetUrlRequest.builder()
-                        .bucket(bucket)
-                        .key(storageKey)
-                        .build())
-                .toString();
-
-        return new S3UploadResponse(
-                imageUrl,
+        return new S3PresignedUrlResponse(
+                presignedUrl,
                 storageKey,
-                file.getOriginalFilename(),
-                file.getSize(),
+                originalFilename,
+                fileSize,
                 contentType
         );
     }
 
-    // S3에 저장된 파일을 storageKey 기준으로 삭제
+    public String generateReadPresignedUrl(String storageKey) {
+        GetObjectRequest getObjectRequest = GetObjectRequest.builder()
+                .bucket(properties.s3().bucket())
+                .key(storageKey)
+                .build();
+
+        GetObjectPresignRequest presignRequest = GetObjectPresignRequest.builder()
+                .signatureDuration(PRESIGNED_URL_EXPIRATION)
+                .getObjectRequest(getObjectRequest)
+                .build();
+
+        return s3Presigner.presignGetObject(presignRequest)
+                .url()
+                .toString();
+    }
+
     public void delete(String storageKey) {
         DeleteObjectRequest deleteObjectRequest = DeleteObjectRequest.builder()
                 .bucket(properties.s3().bucket())
@@ -79,34 +81,48 @@ public class S3Service {
         s3Client.deleteObject(deleteObjectRequest);
     }
 
-    // 업로드 파일이 비어 있지 않은지, 크기와 이미지 타입이 허용 범위인지 검증
-    private void validateImageFile(MultipartFile file) {
-        if (file == null || file.isEmpty()) {
-            throw new IllegalArgumentException("Upload file is empty.");
+    private String generateUploadPresignedUrl(String storageKey, String contentType) {
+        PutObjectRequest putObjectRequest = PutObjectRequest.builder()
+                .bucket(properties.s3().bucket())
+                .key(storageKey)
+                .contentType(contentType)
+                .build();
+
+        PutObjectPresignRequest presignRequest = PutObjectPresignRequest.builder()
+                .signatureDuration(PRESIGNED_URL_EXPIRATION)
+                .putObjectRequest(putObjectRequest)
+                .build();
+
+        return s3Presigner.presignPutObject(presignRequest)
+                .url()
+                .toString();
+    }
+
+    private void validateReceiptFile(String originalFilename, String contentType, Long fileSize) {
+        if (originalFilename == null || originalFilename.isBlank()) {
+            throw new CustomException(ErrorCode.INVALID_RECEIPT_FILE);
         }
 
-        if (file.getSize() > MAX_FILE_SIZE) {
-            throw new IllegalArgumentException("File size must be 10MB or less.");
+        if (contentType == null || !ALLOWED_CONTENT_TYPES.contains(contentType)) {
+            throw new CustomException(ErrorCode.INVALID_RECEIPT_FILE);
         }
 
-        if (!ALLOWED_CONTENT_TYPES.contains(file.getContentType())) {
-            throw new IllegalArgumentException("Only jpeg, png, and webp images are allowed.");
+        if (fileSize == null || fileSize <= 0 || fileSize > MAX_FILE_SIZE) {
+            throw new CustomException(ErrorCode.INVALID_RECEIPT_FILE);
         }
     }
 
-    // 영수증 이미지를 S3에 저장할 고유한 storageKey를 생성한다.
-    private String createReceiptStorageKey(MultipartFile file) {
-        String extension = getExtension(file.getContentType());
-        return "receipts/temp/" + UUID.randomUUID() + "." + extension;
+    private String createReceiptStorageKey(Long transactionId, String contentType) {
+        String extension = getExtension(contentType);
+        return "receipts/" + transactionId + "/" + UUID.randomUUID() + "." + extension;
     }
 
-    // contentType에 맞는 파일 확장자를 반환
     private String getExtension(String contentType) {
         return switch (contentType) {
             case "image/jpeg" -> "jpg";
             case "image/png" -> "png";
             case "image/webp" -> "webp";
-            default -> throw new IllegalArgumentException("Unsupported image type.");
+            default -> throw new CustomException(ErrorCode.INVALID_RECEIPT_FILE);
         };
     }
 }
