@@ -22,16 +22,16 @@ public class OrganizationController {
     private final OrganizationService organizationService;
 
     // 단체 생성
-//    @PostMapping
-//    public ResponseEntity<ApiResponse<OrganizationCreateResponse>> createOrganization(
-//            @Valid @RequestBody OrganizationCreateRequest request
-//            ) {
-//
-//        OrganizationCreateResponse result = organizationService.createOrganization(request);
-//
-//        return ResponseEntity.status(HttpStatus.CREATED)
-//                .body(ApiResponse.success(result));
-//    }
+    @PostMapping
+    public ResponseEntity<ApiResponse<OrganizationCreateResponse>> createOrganization(
+            @Valid @RequestBody OrganizationCreateRequest request
+            ) {
+
+        OrganizationCreateResponse result = organizationService.createOrganization(request);
+
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success(result));
+    }
 
     // 내 단체 목록 조회
 //    @GetMapping

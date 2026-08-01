@@ -1,6 +1,9 @@
 package com.efus.backend.domain.organization.service;
 
+import com.efus.backend.domain.invitation.repository.InvitationRepository;
+import com.efus.backend.domain.invitation.service.InvitationCommandService;
 import com.efus.backend.domain.member.entity.TermMember;
+import com.efus.backend.domain.member.entity.TermMemberRole;
 import com.efus.backend.domain.member.repository.MemberRepository;
 import com.efus.backend.domain.member.repository.TermMemberRepository;
 import com.efus.backend.domain.organization.dto.request.OrganizationCreateRequest;
@@ -22,6 +25,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -32,6 +36,7 @@ public class OrganizationService {
     private final TermRepository termRepository;
     private final MemberRepository memberRepository;
     private final TermMemberRepository termMemberRepository;
+    private final InvitationCommandService invitationCommandService;
 
     // 단체 생성
     @Transactional
@@ -47,15 +52,19 @@ public class OrganizationService {
         OrganizationTerm term = request.toTermEntity(organization, user);
         termRepository.save(term);
 
-        // TODO: 3. 생성자를 첫 기수의 STAFF로 등록
+        // 3. 생성자를 첫 기수의 STAFF로 등록
+        TermMember staffMember = TermMember.create(
+                term,
+                user,
+                TermMemberRole.STAFF,
+                LocalDateTime.now()
+        );
+        memberRepository.save(staffMember);
 
-        // TODO: 4. 첫 기수의 STAFF용 초대 코드 생성
+        // 4. 첫 기수의 STAFF/MEMBER용 초대 코드 생성
+        invitationCommandService.createDefaultInvitations(term, staffMember);
 
-        // TODO: 5. 첫 기수의 MEMBER용 초대 코드 생성
-
-        // 응답 반환
-        //return OrganizationCreateResponse.of(organization, term, termMember);
-        return null;
+        return OrganizationCreateResponse.of(organization, term, staffMember);
     }
 
 //    @Transactional(readOnly = true)
