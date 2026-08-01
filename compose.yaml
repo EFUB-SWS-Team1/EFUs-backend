@@ -3,7 +3,7 @@ services:
     image: kkangchong/efus-backend:latest
 
     env_file:
-      - .env
+      - /home/ubuntu/efus.env
 
     ports:
       - "127.0.0.1:8080:8080"
