@@ -100,9 +100,11 @@ jobs:
       - name: Deploy latest image
         shell: bash
         run: |
-          ssh \
+          ssh -T \
             -i ~/.ssh/efus.pem \
-            "${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }}" << 'EOF'
+            "${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }}" \
+            'bash -s' <<'EOF'
+
           set -euo pipefail
 
           cd /home/ubuntu/efus-app
@@ -140,5 +142,4 @@ jobs:
           sudo docker image prune -f
 
           echo "CD 완료"
-          exit 0
           EOF
