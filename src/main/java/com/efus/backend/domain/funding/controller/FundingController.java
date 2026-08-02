@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import com.efus.backend.domain.funding.dto.response.FundingDetailResponse;
 
 @RestController
 @RequestMapping("/api/terms/{termId}/fundings")
@@ -27,5 +28,15 @@ public class FundingController {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(ApiResponse.success(response, "행사가 등록되었습니다."));
+    }
+
+    @GetMapping("/{fundingId}")
+    public ResponseEntity<ApiResponse<FundingDetailResponse>> getFundingDetail(
+            @PathVariable Long termId,
+            @PathVariable Long fundingId
+    ) {
+        FundingDetailResponse response = fundingService.getFundingDetail(termId, fundingId);
+
+        return ResponseEntity.ok(ApiResponse.success(response));
     }
 }
