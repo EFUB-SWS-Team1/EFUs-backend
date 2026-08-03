@@ -5,6 +5,7 @@ import com.efus.backend.domain.invitation.service.InvitationCommandService;
 import com.efus.backend.domain.member.entity.TermMember;
 import com.efus.backend.domain.member.entity.TermMemberRole;
 import com.efus.backend.domain.member.repository.MemberRepository;
+import com.efus.backend.domain.member.repository.TermMemberRepository;
 import com.efus.backend.domain.organization.dto.request.OrganizationCreateRequest;
 import com.efus.backend.domain.organization.dto.response.OrganizationCreateResponse;
 import com.efus.backend.domain.organization.dto.response.OrganizationDetailResponse;
@@ -17,6 +18,8 @@ import com.efus.backend.domain.term.entity.TermStatus;
 import com.efus.backend.domain.term.repository.TermRepository;
 import com.efus.backend.domain.user.entity.User;
 import com.efus.backend.domain.user.service.CurrentUserService;
+import com.efus.backend.global.exception.CustomException;
+import com.efus.backend.global.exception.ErrorCode;
 import com.efus.backend.global.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -32,6 +35,7 @@ public class OrganizationService {
     private final OrganizationRepository organizationRepository;
     private final TermRepository termRepository;
     private final MemberRepository memberRepository;
+    private final TermMemberRepository termMemberRepository;
     private final InvitationCommandService invitationCommandService;
 
     // 단체 생성
@@ -83,20 +87,48 @@ public class OrganizationService {
 
     @Transactional(readOnly = true)
     public OrganizationDetailResponse getOrganizationDetail(Long organizationId) {
-        // 1. 유저 조회
+        // 유저 조회
         User user = currentUserService.getCurrentUser();
 
-        // TODO 2. 단체 조회 (없으면 404 ORGANIZATION_NOT_FOUND)
+        // 단체 조회
+        Organization organization = organizationRepository.findById(organizationId)
+                .orElseThrow(() -> new CustomException(ErrorCode.ORGANIZATION_NOT_FOUND));
 
-        // TODO 3. 권한 검증: 사용자가 해당 단체의 기수에 가입한 이력이 있는지 확인
-        // (없으면 403 ORGANIZATION_ACCESS_DENIED)
+        // 권한 검증
+        validateOrganizationMember(organizationId, user.getId());
 
-        // TODO 4. 현재 활성 기수(ACTIVE) 조회 및 DTO 변환
-        // 활성 기수가 있으면 멤버 수(memberCount)와 내 역할(myRole)도 함께 조회
+        // 현재 활성 기수 조회
+        OrganizationTerm activeTerm = termRepository.findByOrganizationIdAndTermStatus(organizationId, TermStatus.ACTIVE)
+                .orElse(null);
 
-        // TODO 5. 최근 종료 기수(CLOSED) 조회 및 DTO 변환
+        Long memberCount = null;
+        TermMember myActiveMember = null;
 
-        // 6. 뼈대 반환 (실제 구현 시 조립된 DTO 반환)
-        return null;
+        // 활성 기수가 존재할 때만 멤버 수와 내 역할을 조회
+        if (activeTerm != null) {
+            memberCount = termMemberRepository.countByTermId(activeTerm.getId());
+            myActiveMember = termMemberRepository.findByTermIdAndUserId(activeTerm.getId(), user.getId())
+                    .orElse(null);
+        }
+
+        // 최근 종료 기수 조회
+        OrganizationTerm recentClosedTerm = termRepository.findTopByOrganizationIdAndTermStatusOrderByEndDateDesc(organizationId, TermStatus.CLOSED)
+                .orElse(null);
+
+        return OrganizationDetailResponse.of(
+                organization,
+                activeTerm,
+                recentClosedTerm,
+                memberCount,
+                myActiveMember
+        );
+    }
+
+    private void validateOrganizationMember(Long organizationId, Long userId) {
+        boolean isMember = termMemberRepository.existsByTerm_Organization_IdAndUser_Id(organizationId, userId);
+
+        if (!isMember) {
+            throw new CustomException(ErrorCode.ORGANIZATION_ACCESS_DENIED);
+        }
     }
 }

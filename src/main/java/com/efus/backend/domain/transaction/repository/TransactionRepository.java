@@ -27,4 +27,20 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
             @Param("termId") Long termId,
             @Param("transactionType") TransactionType transactionType
     );
+    // TODO: Transaction-Funding 연관관계 병합 후 주석 해제
+// List<Transaction> findAllByFunding_IdAndDeletedFalseOrderByTransactionDateDesc(Long fundingId);
+
+// TODO: Transaction-Funding 연관관계 병합 후 주석 해제
+// @Query("""
+//         select coalesce(sum(t.amount), 0)
+//         from Transaction t
+//         where t.funding.id = :fundingId
+//           and t.transactionType = :transactionType
+//           and t.deleted = false
+//         """)
+// Long sumAmountByFundingIdAndTransactionType(
+//         @Param("fundingId") Long fundingId,
+//         @Param("transactionType") TransactionType transactionType
+// );
+
 }
