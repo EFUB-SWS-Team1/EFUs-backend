@@ -1,6 +1,11 @@
 package com.efus.backend.domain.term.service;
 
+import com.efus.backend.domain.invitation.service.InvitationCommandService;
+import com.efus.backend.domain.member.entity.TermMember;
+import com.efus.backend.domain.member.entity.TermMemberRole;
 import com.efus.backend.domain.member.repository.TermMemberRepository;
+import com.efus.backend.domain.organization.entity.Organization;
+import com.efus.backend.domain.organization.repository.OrganizationRepository;
 import com.efus.backend.domain.term.dto.request.TermCloseRequest;
 import com.efus.backend.domain.term.dto.request.TermCreateRequest;
 import com.efus.backend.domain.term.dto.request.TermUpdateRequest;
@@ -14,43 +19,51 @@ import com.efus.backend.domain.term.repository.TermRepository;
 import com.efus.backend.domain.user.entity.User;
 import com.efus.backend.domain.user.service.CurrentUserService;
 // import com.efus.backend.domain.organization.service.OrganizationQueryService;
+import com.efus.backend.global.exception.CustomException;
+import com.efus.backend.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
 public class TermService {
     private final CurrentUserService currentUserService;
     private final TermRepository termRepository;
-//    private final CurrentUserService currentUserService;
-//    private final TermRepository termRepository;
-//    private final OrganizationQueryService organizationQueryService;
     private final TermMemberRepository termMemberRepository;
+    private final OrganizationRepository organizationRepository;
+    private final InvitationCommandService invitationCommandService;
 
+    // [다음 기수 생성]
     @Transactional
     public TermCreateResponse createTerm(Long organizationId, TermCreateRequest request) {
         User user = currentUserService.getCurrentUser();
 
-        // TODO: 단체 엔티티 조회 (OrganizationQueryService 등 활용)
+        Organization organization = organizationRepository.findById(organizationId)
+                .orElseThrow(() -> new CustomException(ErrorCode.ORGANIZATION_NOT_FOUND));
 
-        // TODO 1: 권한 검증 - 해당 단체의 가장 최근 기수에서 STAFF였던 사용자만 요청 가능
-        // (권한이 없으면 403 TERM_CREATION_FORBIDDEN 에러 발생)
+        validateStaffInRecentTerm(organizationId, user.getId());
 
-        // TODO 2: 상태 검증 - 단체에 활성 기수가 존재하는지 확인[
-        // (존재하면 409 ACTIVE_TERM_ALREADY_EXISTS 에러 발생)
+        boolean hasActiveTerm = termRepository.existsByOrganizationIdAndTermStatus(organizationId, TermStatus.ACTIVE);
+        if (hasActiveTerm) {
+            throw new CustomException(ErrorCode.ACTIVE_TERM_ALREADY_EXISTS);
+        }
 
-        // 3. 새로운 OrganizationTerm 생성
-        // OrganizationTerm term = request.toEntity(organization, user);
-        // termRepository.save(term);
+        // 위 검증들을 다 통과하면 새로운 기수 생성
+        OrganizationTerm term = request.toEntity(organization, user);
+        termRepository.save(term);
+        TermMember staffMember = TermMember.create(
+                term,
+                user,
+                TermMemberRole.STAFF,
+                LocalDateTime.now()
+        );
+        termMemberRepository.save(staffMember);
+        invitationCommandService.createDefaultInvitations(term, staffMember);
 
-        // TODO 4: 요청자를 새 기수의 STAFF로 등록
-
-        // TODO 5 & 6: 새 기수의 STAFF용 / MEMBER용 초대 코드 생성
-
-        // 7. 응답 반환 (뼈대 구조)
-        // return TermCreateResponse.of(term, organization, termMember.getId(), "STAFF");
-        return null;
+         return TermCreateResponse.of(term, organization, staffMember);
     }
 
     public TermListResponse getTermList(Long organizationId) {
@@ -134,5 +147,20 @@ public class TermService {
         // 8. 뼈대 반환
         // return TermCloseResponse.of(term, closer);
         return null;
+    }
+
+    private void validateStaffInRecentTerm(Long organizationId, Long userId) {
+        // 단체의 가장 최근 종료된 기수 조회
+        OrganizationTerm recentTerm = termRepository.findTopByOrganizationIdAndTermStatusOrderByEndDateDesc(organizationId, TermStatus.CLOSED)
+                .orElseThrow(() -> new CustomException(ErrorCode.ACTIVE_TERM_ALREADY_EXISTS));
+
+        // 가장 최근 기수에 해당 유저가 소속되어 있었는지 확인
+        TermMember recentTermMember = termMemberRepository.findByTermIdAndUserId(recentTerm.getId(), userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.TERM_CREATION_FORBIDDEN));
+
+        // 소속되어 있었다면, 그 역할이 STAFF인지 확인
+        if (recentTermMember.getRole() != TermMemberRole.STAFF) {
+            throw new CustomException(ErrorCode.TERM_CREATION_FORBIDDEN);
+        }
     }
 }
