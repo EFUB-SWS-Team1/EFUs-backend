@@ -53,25 +53,6 @@ public class TermService {
         return null;
     }
 
-    public TermListResponse getTermList(Long organizationId) {
-        User user = currentUserService.getCurrentUser();
-
-        // TODO 1. 단체 조회 및 예외 처리 (404 ORGANIZATION_NOT_FOUND)
-
-        // TODO 2. 권한 검증: 로그인한 사용자가 해당 단체의 기수에 하나라도 가입한 이력이 있는지 확인
-        // (가입 이력이 없으면 403 ORGANIZATION_ACCESS_DENIED)
-
-        // TODO 3. 단체에 속한 전체 기수 목록 조회 (최근 기수부터 정렬하여 가져오기)
-
-        // TODO 4. 조회한 기수 목록(Entity)을 stream().map()을 사용하여 DTO(TermDetailDto)로 변환
-        // 변환 시 유의사항:
-        // - 해당 기수의 memberCount 집계하여 세팅
-        // - 사용자가 해당 기수에 가입했는지 확인 후 myRole 세팅 (가입하지 않았으면 null)
-
-        // 5. 뼈대 반환
-        return null;
-    }
-
     @Transactional
     public TermUpdateResponse updateTerm(Long termId, TermUpdateRequest request) {
         // 1. 요청 값 검증: 수정할 필드가 하나도 없는 경우 처리 (400 EMPTY_UPDATE_REQUEST)
