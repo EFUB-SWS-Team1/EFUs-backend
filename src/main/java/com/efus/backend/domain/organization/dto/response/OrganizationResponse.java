@@ -29,6 +29,8 @@ public record OrganizationResponse(
                 memberCount
         );
 
+        String roleName = (termMember != null) ? termMember.getRole().name() : null;
+
         return new OrganizationResponse(
                 org.getId(),
                 org.getName(),
