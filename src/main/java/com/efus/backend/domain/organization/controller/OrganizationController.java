@@ -34,12 +34,12 @@ public class OrganizationController {
     }
 
     // 내 단체 목록 조회
-//    @GetMapping
-//    public ResponseEntity<ApiResponse<OrganizationListResponse>> getMyOrganizations() {
-//        OrganizationListResponse response = organizationService.getMyOrganizations();
-//
-//        return ResponseEntity.ok(ApiResponse.success(response));
-//    }
+    @GetMapping
+    public ResponseEntity<ApiResponse<OrganizationListResponse>> getMyOrganizations() {
+        OrganizationListResponse response = organizationService.getMyOrganizations();
+
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
 
     // 단체 상세 조회
     @GetMapping("/{organizationId}")

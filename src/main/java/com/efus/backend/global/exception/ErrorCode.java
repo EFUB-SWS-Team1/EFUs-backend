@@ -58,7 +58,15 @@ public enum ErrorCode {
     INVALID_RECEIPT_FILE(400, "Bad Request", "INVALID_RECEIPT_FILE", "올바르지 않은 영수증 파일입니다."),
     RECEIPT_UPLOAD_FAILED(500, "Internal Server Error", "RECEIPT_UPLOAD_FAILED", "영수증 업로드에 실패했습니다."),
     RECEIPT_DELETE_FAILED(500, "Internal Server Error", "RECEIPT_DELETE_FAILED", "영수증 삭제에 실패했습니다."),
-    RECEIPT_OCR_FAILED(500, "Internal Server Error", "RECEIPT_OCR_FAILED", "영수증 OCR 금액 인식에 실패했습니다.");
+    RECEIPT_OCR_FAILED(500, "Internal Server Error", "RECEIPT_OCR_FAILED", "영수증 OCR 금액 인식에 실패했습니다."),
+
+    // Funding 관련
+    FUNDING_NOT_FOUND(404, "Not Found", "FUNDING_NOT_FOUND", "행사를 찾을 수 없습니다."),
+    FUNDING_ACCESS_DENIED(403, "Forbidden", "FUNDING_ACCESS_DENIED", "행사에 접근할 권한이 없습니다."),
+    STAFF_REQUIRED(403, "Forbidden", "STAFF_REQUIRED", "스태프만 요청할 수 있습니다."),
+    INVALID_FUNDING_PERIOD(400, "Bad Request", "INVALID_FUNDING_PERIOD", "행사 기간이 올바르지 않습니다."),
+    INVALID_FUNDING_BUDGET(400, "Bad Request", "INVALID_FUNDING_BUDGET", "행사 예산은 0보다 커야 합니다."),
+    INVALID_PARTICIPANT_COUNT(400, "Bad Request", "INVALID_PARTICIPANT_COUNT", "참여 인원은 0보다 커야 합니다.");
 
     private final int status;
     private final String error;
