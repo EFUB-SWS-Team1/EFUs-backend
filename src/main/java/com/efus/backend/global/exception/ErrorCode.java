@@ -26,9 +26,14 @@ public enum ErrorCode {
     ORGANIZATION_NOT_FOUND(404, "Not Found", "ORGANIZATION_NOT_FOUND", "단체를 찾을 수 없습니다."),
     ORGANIZATION_ACCESS_DENIED(403, "Forbidden", "ORGANIZATION_ACCESS_DENIED", "해당 단체를 조회할 권한이 없습니다."),
 
-    // Term
+    // Term 관련
     TERM_NOT_FOUND(404, "Not Found", "TERM_NOT_FOUND", "기수를 찾을 수 없습니다."),
     TERM_CLOSED(400, "Bad Request", "TERM_CLOSED", "현재 활성화된 기수가 아닙니다."),
+    ACTIVE_TERM_ALREADY_EXISTS(409, "Conflict", "ACTIVE_TERM_ALREADY_EXISTS", "현재 활성 기수가 존재하여 새 기수를 생성할 수 없습니다."),
+    TERM_CREATION_FORBIDDEN(403, "Forbidden", "TERM_CREATION_FORBIDDEN", "새 기수를 생성할 권한이 없습니다."),
+    TERM_ACCESS_DENIED(403, "Forbidden", "TERM_ACCESS_DENIED", "해당 기수를 조회할 권한이 없습니다."),
+    TERM_ALREADY_CLOSED(409, "Conflict", "TERM_ALREADY_CLOSED", "종료된 기수는 수정할 수 없습니다."),
+    STAFF_PERMISSION_REQUIRED(403, "Forbidden", "STAFF_PERMISSION_REQUIRED", "운영진만 기수 정보를 수정할 수 있습니다."),
 
     // 서버 관련
     KAKAO_API_ERROR(502, "Bad Gateway", "KAKAO_API_ERROR", "카카오 서버와 통신하는 중 오류가 발생했습니다."),

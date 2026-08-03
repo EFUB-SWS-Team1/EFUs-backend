@@ -1,5 +1,6 @@
 package com.efus.backend.domain.term.dto.response;
 
+import com.efus.backend.domain.member.entity.TermMember;
 import com.efus.backend.domain.organization.entity.Organization;
 import com.efus.backend.domain.term.entity.OrganizationTerm;
 import java.time.LocalDate;
@@ -17,7 +18,7 @@ public record TermCreateResponse(
         String myRole,
         LocalDateTime createdAt
 ) {
-    public static TermCreateResponse of(OrganizationTerm term, Organization org, Long myTermMemberId, String myRole) {
+    public static TermCreateResponse of(OrganizationTerm term, Organization org, TermMember member) {
         return new TermCreateResponse(
                 term.getId(),
                 org.getId(),
@@ -26,8 +27,8 @@ public record TermCreateResponse(
                 term.getStartDate(),
                 term.getEndDate(),
                 term.getTermStatus().name(),
-                myTermMemberId,
-                myRole,
+                member.getId(),
+                member.getRole().name(),
                 term.getCreatedAt()
         );
     }
