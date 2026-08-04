@@ -59,4 +59,9 @@ public class OrganizationTerm extends BaseEntity {
             this.startDate = startDate;
         }
     }
+
+    public void close(LocalDate endDate) {
+        this.endDate = endDate;
+        this.termStatus = TermStatus.CLOSED;
+    }
 }

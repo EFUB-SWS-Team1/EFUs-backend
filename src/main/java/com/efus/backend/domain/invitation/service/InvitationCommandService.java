@@ -22,6 +22,7 @@ import com.efus.backend.domain.member.entity.TermMemberRole;
 import com.efus.backend.domain.term.entity.OrganizationTerm;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -129,5 +130,13 @@ public class InvitationCommandService {
         );
 
         return invitationRepository.save(invitation);
+    }
+
+    public void deactivateCodesByTermId(Long termId) {
+        List<Invitation> activeInvitations = invitationRepository.findAllByTerm_IdAndActiveTrue(termId);
+
+        for (Invitation invitation : activeInvitations) {
+            invitation.deactivate();
+        }
     }
 }

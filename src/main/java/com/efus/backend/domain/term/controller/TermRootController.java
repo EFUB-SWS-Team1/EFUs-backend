@@ -40,6 +40,7 @@ public class TermRootController {
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
+    // [기수 종료]
     @PatchMapping("/close")
     public ResponseEntity<ApiResponse<TermCloseResponse>> closeTerm(
             @PathVariable("termId") Long termId,
