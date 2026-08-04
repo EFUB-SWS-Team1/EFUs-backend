@@ -30,11 +30,12 @@ public class TermController {
                 .body(ApiResponse.success(response));
     }
 
-//    @GetMapping
-//    public ResponseEntity<ApiResponse<TermListResponse>> getTermList(
-//            @PathVariable("organizationId") Long organizationId) {
-//
-//        TermListResponse response = termQueryService.getTermList(organizationId);
-//        return ResponseEntity.ok(ApiResponse.success(response));
-//    }
+    // [기수 목록 조회]
+    @GetMapping
+    public ResponseEntity<ApiResponse<TermListResponse>> getTermList(
+            @PathVariable("organizationId") Long organizationId) {
+
+        TermListResponse response = termQueryService.getTermList(organizationId);
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
 }
