@@ -1,8 +1,10 @@
 package com.efus.backend.domain.invitation.controller;
 
+import com.efus.backend.domain.invitation.dto.request.InvitationCodeRequest;
 import com.efus.backend.domain.invitation.dto.request.InvitationReissueRequest;
 import com.efus.backend.domain.invitation.dto.response.InvitationListResponse;
 import com.efus.backend.domain.invitation.dto.response.InvitationReissueResponse;
+import com.efus.backend.domain.invitation.dto.response.InvitationValidateResponse;
 import com.efus.backend.domain.invitation.service.InvitationCommandService;
 import com.efus.backend.domain.invitation.service.InvitationQueryService;
 import com.efus.backend.global.response.ApiResponse;
@@ -23,6 +25,16 @@ public class InvitationController {
 
     private final InvitationQueryService invitationQueryService;
     private final InvitationCommandService invitationCommandService;
+
+    @PostMapping("/invitations/validate")
+    public ResponseEntity<ApiResponse<InvitationValidateResponse>> validateInvitation(
+            @RequestBody InvitationCodeRequest request
+    ) {
+        InvitationValidateResponse response =
+                invitationQueryService.validateInvitation(request);
+
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
 
     @GetMapping("/terms/{termId}/invitations")
     public ResponseEntity<ApiResponse<InvitationListResponse>> getInvitations(

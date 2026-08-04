@@ -1,8 +1,10 @@
 package com.efus.backend.domain.invitation.service;
 
+import com.efus.backend.domain.invitation.dto.request.InvitationCodeRequest;
 import com.efus.backend.domain.invitation.dto.response.InvitationCodeResponse;
 import com.efus.backend.domain.invitation.dto.response.InvitationListResponse;
 import com.efus.backend.domain.invitation.dto.response.InvitationTermResponse;
+import com.efus.backend.domain.invitation.dto.response.InvitationValidateResponse;
 import com.efus.backend.domain.invitation.entity.Invitation;
 import com.efus.backend.domain.invitation.repository.InvitationRepository;
 import com.efus.backend.domain.member.entity.TermMemberRole;
@@ -11,6 +13,7 @@ import com.efus.backend.domain.term.entity.OrganizationTerm;
 import com.efus.backend.domain.term.service.TermQueryService;
 import com.efus.backend.global.exception.CustomException;
 import com.efus.backend.global.exception.ErrorCode;
+import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +28,27 @@ public class InvitationQueryService {
     private final InvitationRepository invitationRepository;
     private final TermQueryService termQueryService;
     private final MemberQueryService memberQueryService;
+
+    public InvitationValidateResponse validateInvitation(
+            InvitationCodeRequest request
+    ) {
+        String code = request.requireCode();
+        Invitation invitation = invitationRepository.findByCode(code)
+                .orElseThrow(() -> new CustomException(ErrorCode.INVITATION_NOT_FOUND));
+
+        if (!invitation.isActive()) {
+            throw new CustomException(ErrorCode.INVITATION_INACTIVE);
+        }
+
+        if (invitation.isExpired(LocalDateTime.now())) {
+            throw new CustomException(ErrorCode.INVITATION_EXPIRED);
+        }
+
+        OrganizationTerm term = invitation.getTerm();
+        termQueryService.validateActiveTerm(term.getId());
+
+        return InvitationValidateResponse.from(invitation, term);
+    }
 
     public InvitationListResponse getInvitations(Long termId) {
         OrganizationTerm term = termQueryService.getTerm(termId);
