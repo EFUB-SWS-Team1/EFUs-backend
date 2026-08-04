@@ -36,6 +36,9 @@ public enum ErrorCode {
     STAFF_PERMISSION_REQUIRED(403, "Forbidden", "STAFF_PERMISSION_REQUIRED", "운영진만 기수 정보를 수정할 수 있습니다."),
     EMPTY_UPDATE_REQUEST(400, "Bad Request", "EMPTY_UPDATE_REQUEST", "name과 startDate 중 최소 하나는 전달되야 합니다."),
 
+    // Member 관련
+    TERM_MEMBER_NOT_FOUND(404, "Not Found", "TERM_MEMBER_NOT_FOUND", "구성원을 찾을 수 없습니다."),
+
     // 서버 관련
     KAKAO_API_ERROR(502, "Bad Gateway", "KAKAO_API_ERROR", "카카오 서버와 통신하는 중 오류가 발생했습니다."),
 
