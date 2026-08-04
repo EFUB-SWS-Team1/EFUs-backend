@@ -3,38 +3,20 @@ package com.efus.backend.domain.invitation.dto.response;
 import com.efus.backend.domain.invitation.entity.Invitation;
 import com.efus.backend.domain.member.entity.TermMemberRole;
 
-import java.time.OffsetDateTime;
-import java.time.ZoneId;
+import java.time.LocalDateTime;
 
 public record InvitationReissueResponse(
         Long invitationId,
-        Long termId,
-        TermMemberRole role,
         String code,
-        OffsetDateTime issuedAt,
-        OffsetDateTime expiresAt,
-        boolean active
+        TermMemberRole role,
+        LocalDateTime expiresAt
 ) {
-
-    private static final ZoneId KOREA_ZONE_ID =
-            ZoneId.of("Asia/Seoul");
-
-    public static InvitationReissueResponse from(
-            Long termId,
-            Invitation invitation
-    ) {
+    public static InvitationReissueResponse from(Invitation invitation) {
         return new InvitationReissueResponse(
                 invitation.getId(),
-                termId,
-                invitation.getRole(),
                 invitation.getCode(),
-                invitation.getCreatedAt()
-                        .atZone(KOREA_ZONE_ID)
-                        .toOffsetDateTime(),
+                invitation.getRole(),
                 invitation.getExpiresAt()
-                        .atZone(KOREA_ZONE_ID)
-                        .toOffsetDateTime(),
-                invitation.isActive()
         );
     }
 }
