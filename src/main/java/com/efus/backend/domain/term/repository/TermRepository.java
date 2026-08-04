@@ -16,4 +16,7 @@ public interface TermRepository extends JpaRepository<OrganizationTerm, Long> {
 
     // 특정 단체의 모든 기수를 시작일 기준 내림차순 조회
     List<OrganizationTerm> findByOrganizationIdOrderByStartDateDesc(Long organizationId);
+
+    // 단체에 특정 상태의 기수가 존재하는지 확인
+    boolean existsByOrganizationIdAndTermStatus(Long organizationId, TermStatus termStatus);
 }

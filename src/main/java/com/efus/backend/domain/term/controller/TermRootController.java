@@ -15,12 +15,14 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
+@RequestMapping("/api/terms/{termId}")
 public class TermRootController {
 
     private final TermQueryService termQueryService;
     private final TermService termService;
 
-    @GetMapping("/api/terms/{termId}")
+    // [기수 상세 조회]
+    @GetMapping
     public ResponseEntity<ApiResponse<TermDetailResponse>> getTermDetail(
             @PathVariable("termId") Long termId) {
 
@@ -28,7 +30,7 @@ public class TermRootController {
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
-    @PatchMapping("/api/terms/{termId}")
+    @PatchMapping
     public ResponseEntity<ApiResponse<TermUpdateResponse>> updateTerm(
             @PathVariable("termId") Long termId,
             @RequestBody TermUpdateRequest request) {
@@ -37,7 +39,7 @@ public class TermRootController {
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
-    @PatchMapping("/api/terms/{termId}/close")
+    @PatchMapping("/close")
     public ResponseEntity<ApiResponse<TermCloseResponse>> closeTerm(
             @PathVariable("termId") Long termId,
             @Valid @RequestBody TermCloseRequest request) {

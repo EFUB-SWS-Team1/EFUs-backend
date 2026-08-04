@@ -4,6 +4,9 @@ import com.efus.backend.domain.member.entity.TermMember;
 import com.efus.backend.domain.member.repository.TermMemberRepository;
 import com.efus.backend.domain.organization.entity.Organization;
 import com.efus.backend.domain.organization.repository.OrganizationRepository;
+import com.efus.backend.domain.member.entity.TermMember;
+import com.efus.backend.domain.member.repository.TermMemberRepository;
+import com.efus.backend.domain.organization.entity.Organization;
 import com.efus.backend.domain.term.dto.response.TermDetailResponse;
 import com.efus.backend.domain.term.dto.response.TermListResponse;
 import com.efus.backend.domain.term.entity.OrganizationTerm;
@@ -44,23 +47,27 @@ public class TermQueryService {
         }
     }
 
+    // [기수 상세 조회]
+    @Transactional(readOnly = true)
     public TermDetailResponse getTermDetail(Long termId) {
         User user = currentUserService.getCurrentUser();
+        OrganizationTerm term = getTerm(termId);
+        Organization organization = term.getOrganization();
 
-        // 1. 기수 조회 (없으면 404 TERM_NOT_FOUND)
-        OrganizationTerm term = getTerm(termId); // 기존에 만들어둔 getTerm 재사용 가능
+        // 사용자가 기수에 가입한 이력이 있는지 확인
+        boolean isOrganizationMember = termMemberRepository.existsByTerm_Organization_IdAndUser_Id(
+                organization.getId(), user.getId()
+        );
 
-        // TODO 2. 권한 검증: 사용자가 '이 기수' 또는 '이 기수가 속한 단체의 다른 기수'에 가입한 이력이 있는지 확인
-        // (가입 이력이 아예 없으면 403 TERM_ACCESS_DENIED)
+        if (!isOrganizationMember) {
+            throw new CustomException(ErrorCode.TERM_ACCESS_DENIED);
+        }
 
-        // TODO 3. 기수 구성원 수(memberCount) 집계
+        Long memberCount = termMemberRepository.countByTermId(term.getId());
+        TermMember myTermMember = termMemberRepository.findByTermIdAndUserId(term.getId(), user.getId())
+                .orElse(null);
 
-        // TODO 4. 로그인 사용자가 '현재 조회 중인 기수'에 직접 가입했는지 확인
-        // - 가입했다면 myTermMemberId, myRole 세팅
-        // - 가입하지 않고 다른 기수에만 가입한 상태라면 null 세팅
-
-        // 5. 뼈대 반환 (실제 구현 시 조립된 DTO 반환)
-        return null;
+        return TermDetailResponse.of(term, organization, memberCount, myTermMember);
     }
 
     // [기수 목록 조회]
