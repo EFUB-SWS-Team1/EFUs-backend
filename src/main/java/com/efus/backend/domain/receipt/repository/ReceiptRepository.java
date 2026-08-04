@@ -3,6 +3,7 @@ package com.efus.backend.domain.receipt.repository;
 import com.efus.backend.domain.receipt.entity.Receipt;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
+import java.util.List;
 
 public interface ReceiptRepository extends JpaRepository<Receipt, Long> {
 
@@ -14,4 +15,6 @@ public interface ReceiptRepository extends JpaRepository<Receipt, Long> {
     );
 
     boolean existsByTransaction_Id(Long transactionId);
+
+    List<Receipt> findAllByTransaction_IdIn(List<Long> transactionIds);
 }
