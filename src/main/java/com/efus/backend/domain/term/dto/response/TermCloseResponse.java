@@ -3,7 +3,8 @@ package com.efus.backend.domain.term.dto.response;
 import com.efus.backend.domain.member.entity.TermMember;
 import com.efus.backend.domain.term.entity.OrganizationTerm;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 
 public record TermCloseResponse(
         Long termId,
@@ -12,7 +13,7 @@ public record TermCloseResponse(
         LocalDate endDate,
         String status,
         ClosedByDto closedBy,
-        LocalDateTime closedAt
+        ZonedDateTime closedAt
 ) {
     public record ClosedByDto(
             Long termMemberId,
@@ -32,7 +33,7 @@ public record TermCloseResponse(
                 term.getEndDate(),
                 term.getTermStatus().name(),
                 closedByDto,
-                LocalDateTime.now()
+                ZonedDateTime.now(ZoneId.of("Asia/Seoul"))
         );
     }
 }

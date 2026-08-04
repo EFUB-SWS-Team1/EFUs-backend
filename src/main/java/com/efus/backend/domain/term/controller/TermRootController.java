@@ -30,6 +30,7 @@ public class TermRootController {
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
+    // [기수 정보 수정]
     @PatchMapping
     public ResponseEntity<ApiResponse<TermUpdateResponse>> updateTerm(
             @PathVariable("termId") Long termId,
@@ -39,6 +40,7 @@ public class TermRootController {
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
+    // [기수 종료]
     @PatchMapping("/close")
     public ResponseEntity<ApiResponse<TermCloseResponse>> closeTerm(
             @PathVariable("termId") Long termId,

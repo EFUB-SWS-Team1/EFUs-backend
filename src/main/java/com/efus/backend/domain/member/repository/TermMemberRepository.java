@@ -1,11 +1,16 @@
 package com.efus.backend.domain.member.repository;
 
 import com.efus.backend.domain.member.entity.TermMember;
+import com.efus.backend.domain.member.entity.TermMemberRole;
+import com.efus.backend.domain.member.entity.TermMemberStatus;
+import java.util.List;
+import java.util.Optional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
-
- import com.efus.backend.domain.member.entity.TermMemberStatus;
- import java.util.List;
- import java.util.Optional;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 public interface TermMemberRepository extends JpaRepository<TermMember, Long> {
 
@@ -35,4 +40,33 @@ public interface TermMemberRepository extends JpaRepository<TermMember, Long> {
 
     // 특정 기수의 총 멤버 수 계산
     long countByTermId(Long termId);
+
+    @EntityGraph(attributePaths = "user")
+    @Query(
+            value = """
+                    select tm
+                    from TermMember tm
+                    join tm.user u
+                    where tm.term.id = :termId
+                      and (:keyword is null or lower(u.name) like lower(concat('%', :keyword, '%')))
+                      and (:role is null or tm.role = :role)
+                    order by case when tm.role = com.efus.backend.domain.member.entity.TermMemberRole.STAFF then 0 else 1 end,
+                             u.name asc,
+                             tm.id asc
+                    """,
+            countQuery = """
+                    select count(tm)
+                    from TermMember tm
+                    join tm.user u
+                    where tm.term.id = :termId
+                      and (:keyword is null or lower(u.name) like lower(concat('%', :keyword, '%')))
+                      and (:role is null or tm.role = :role)
+                    """
+    )
+    Page<TermMember> findTermMembers(
+            @Param("termId") Long termId,
+            @Param("keyword") String keyword,
+            @Param("role") TermMemberRole role,
+            Pageable pageable
+    );
 }
