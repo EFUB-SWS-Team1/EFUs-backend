@@ -34,6 +34,7 @@ public enum ErrorCode {
     TERM_ACCESS_DENIED(403, "Forbidden", "TERM_ACCESS_DENIED", "해당 기수를 조회할 권한이 없습니다."),
     TERM_ALREADY_CLOSED(409, "Conflict", "TERM_ALREADY_CLOSED", "종료된 기수는 수정할 수 없습니다."),
     STAFF_PERMISSION_REQUIRED(403, "Forbidden", "STAFF_PERMISSION_REQUIRED", "운영진만 기수 정보를 수정할 수 있습니다."),
+    EMPTY_UPDATE_REQUEST(400, "Bad Request", "EMPTY_UPDATE_REQUEST", "name과 startDate 중 최소 하나는 전달되야 합니다."),
 
     // 서버 관련
     KAKAO_API_ERROR(502, "Bad Gateway", "KAKAO_API_ERROR", "카카오 서버와 통신하는 중 오류가 발생했습니다."),

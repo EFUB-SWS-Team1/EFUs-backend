@@ -50,4 +50,13 @@ public class OrganizationTerm extends BaseEntity {
         this.endDate = endDate;
         this.termStatus = termStatus;
     }
+
+    public void update(String name, LocalDate startDate) {
+        if (name != null && !name.isBlank()) {
+            this.name = name;
+        }
+        if (startDate != null) {
+            this.startDate = startDate;
+        }
+    }
 }
