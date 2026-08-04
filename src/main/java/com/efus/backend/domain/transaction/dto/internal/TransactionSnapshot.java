@@ -12,15 +12,14 @@ public record TransactionSnapshot(
         LocalDate transactionDate,
         String memo
 ) {
-    // TODO: funding 연관관계 병합 후 주석 해제
-//    public static TransactionSnapshot from(Transaction transaction) {
-//        return new TransactionSnapshot(
-//                transaction.getTransactionType(),
-//                transaction.getFunding() == null ? null : transaction.getFunding().getId(),
-//                transaction.getTitle(),
-//                transaction.getAmount(),
-//                transaction.getTransactionDate(),
-//                transaction.getMemo()
-//        );
-//    }
+    public static TransactionSnapshot from(Transaction transaction) {
+        return new TransactionSnapshot(
+                transaction.getTransactionType(),
+                transaction.getFunding() == null ? null : transaction.getFunding().getId(),
+                transaction.getTitle(),
+                transaction.getAmount(),
+                transaction.getTransactionDate(),
+                transaction.getMemo()
+        );
+    }
 }

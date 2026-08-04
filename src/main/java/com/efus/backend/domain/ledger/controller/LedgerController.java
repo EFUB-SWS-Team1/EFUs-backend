@@ -31,7 +31,6 @@ public class LedgerController {
             @RequestParam(defaultValue = "ALL") LedgerFlowType type,
             @RequestParam(defaultValue = "false") boolean includeDeleted,
 
-            // TODO: Transaction-Funding 연관관계 병합 후 실제 필터 적용
             @RequestParam(required = false) Long fundingId,
 
             @RequestParam(defaultValue = "0") int page,

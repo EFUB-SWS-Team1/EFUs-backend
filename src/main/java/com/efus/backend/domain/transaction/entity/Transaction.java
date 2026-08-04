@@ -1,7 +1,6 @@
 package com.efus.backend.domain.transaction.entity;
 
-// TODO: funding 연관관계 병합 후 주석 해제
-//import com.efus.backend.domain.funding.entity.Funding;
+import com.efus.backend.domain.funding.entity.Funding;
 import com.efus.backend.domain.term.entity.OrganizationTerm;
 import com.efus.backend.domain.member.entity.TermMember;
 import com.efus.backend.global.domain.BaseEntity;
@@ -37,10 +36,9 @@ public class Transaction extends BaseEntity {
     @JoinColumn(name = "term_id", nullable = false)
     private OrganizationTerm term;
 
-    // TODO: funding 연관관계 병합 후 주석 해제
-//    @ManyToOne(fetch = FetchType.LAZY)
-//    @JoinColumn(name = "funding_id")
-//    private Funding funding;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "funding_id")
+    private Funding funding;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "created_by_term_member_id", nullable = false)
@@ -79,8 +77,7 @@ public class Transaction extends BaseEntity {
     @Builder
     public Transaction(
             OrganizationTerm term,
-            // TODO: funding 연관관계 병합 후 주석 해제
-//            Funding funding,
+            Funding funding,
             TermMember createdByTermMember,
             TransactionType transactionType,
             String title,
@@ -89,8 +86,7 @@ public class Transaction extends BaseEntity {
             String memo
     ) {
         this.term = term;
-        // TODO: funding 연관관계 병합 후 주석 해제
-//        this.funding = funding;
+        this.funding = funding;
         this.createdByTermMember = createdByTermMember;
         this.transactionType = transactionType;
         this.title = title;
@@ -101,8 +97,7 @@ public class Transaction extends BaseEntity {
     }
 
     public void update(
-            // TODO: funding 연관관계 병합 후 주석 해제
-//            Funding funding,
+            Funding funding,
             TermMember updatedByTermMember,
             TransactionType transactionType,
             String title,
@@ -110,8 +105,7 @@ public class Transaction extends BaseEntity {
             LocalDate transactionDate,
             String memo
     ) {
-        // TODO: funding 연관관계 병합 후 주석 해제
-//        this.funding = funding;
+        this.funding = funding;
         this.updatedByTermMember = updatedByTermMember;
         this.transactionType = transactionType;
         this.title = title;

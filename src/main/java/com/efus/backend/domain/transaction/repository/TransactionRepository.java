@@ -19,6 +19,9 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
 
     List<Transaction> findAllByTerm_IdAndDeletedFalse(Long termId);
 
+    List<Transaction> findAllByFunding_IdAndDeletedFalseOrderByTransactionDateDesc(Long fundingId);
+
+
     @Query("""
             select coalesce(sum(t.amount), 0)
             from Transaction t
@@ -30,24 +33,19 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
             @Param("termId") Long termId,
             @Param("transactionType") TransactionType transactionType
     );
-    // TODO: Transaction-Funding 연관관계 병합 후 주석 해제
-//    List<Transaction> findAllByFunding_IdAndDeletedFalseOrderByTransactionDateDesc(Long fundingId);
 
-    // TODO: Transaction-Funding 연관관계 병합 후 주석 해제
-    // @Query("""
-    //         select coalesce(sum(t.amount), 0)
-    //         from Transaction t
-    //         where t.funding.id = :fundingId
-    //           and t.transactionType = :transactionType
-    //           and t.deleted = false
-    //         """)
-    // Long sumAmountByFundingIdAndTransactionType(
-    //         @Param("fundingId") Long fundingId,
-    //         @Param("transactionType") TransactionType transactionType
-    // );
+     @Query("""
+             select coalesce(sum(t.amount), 0)
+             from Transaction t
+             where t.funding.id = :fundingId
+               and t.transactionType = :transactionType
+               and t.deleted = false
+             """)
+     Long sumAmountByFundingIdAndTransactionType(
+             @Param("fundingId") Long fundingId,
+             @Param("transactionType") TransactionType transactionType
+     );
 
-    // TODO: Transaction-Funding 연관관계 병합 후 fundingId 필터 조건 추가
-    // and (:fundingId is null or t.funding.id = :fundingId)
     @Query("""
             select t
             from Transaction t
@@ -56,6 +54,7 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
               and (:fromDate is null or t.transactionDate >= :fromDate)
               and (:toDate is null or t.transactionDate <= :toDate)
               and (:transactionType is null or t.transactionType = :transactionType)
+              and (:fundingId is null or t.funding.id = :fundingId)
             """)
     Page<Transaction> findLedgerTransactions(
             @Param("termId") Long termId,
@@ -63,6 +62,7 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
             @Param("toDate") LocalDate toDate,
             @Param("transactionType") TransactionType transactionType,
             @Param("includeDeleted") boolean includeDeleted,
+            @Param("fundingId") Long fundingId,
             Pageable pageable
     );
 
@@ -74,13 +74,15 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
           and (:fromDate is null or t.transactionDate >= :fromDate)
           and (:toDate is null or t.transactionDate <= :toDate)
           and t.transactionType = :transactionType
+          and (:fundingId is null or t.funding.id = :fundingId)
         """)
     Long sumLedgerTransactionAmount(
             @Param("termId") Long termId,
             @Param("fromDate") LocalDate fromDate,
             @Param("toDate") LocalDate toDate,
             @Param("transactionType") TransactionType transactionType,
-            @Param("includeDeleted") boolean includeDeleted
-    );
+            @Param("includeDeleted") boolean includeDeleted,
+            @Param("fundingId") Long fundingId
+            );
 
 }

@@ -3,6 +3,7 @@ package com.efus.backend.domain.ledger.service;
 import com.efus.backend.domain.ledger.dto.response.LedgerEntryListResponse;
 import com.efus.backend.domain.ledger.dto.response.LedgerEntryResponse;
 import com.efus.backend.domain.ledger.entity.LedgerFlowType;
+import com.efus.backend.domain.member.service.MemberQueryService;
 import com.efus.backend.domain.receipt.entity.Receipt;
 import com.efus.backend.domain.receipt.service.ReceiptQueryService;
 import com.efus.backend.domain.term.service.TermQueryService;
@@ -33,11 +34,10 @@ public class LedgerService {
     private final ReceiptQueryService receiptQueryService;
     private final TermQueryService termQueryService;
 
-    // TODO: MemberQueryService 병합 후 주석 해제
-    // private final MemberQueryService memberQueryService;
+     private final MemberQueryService memberQueryService;
 
     // TODO: Charge 도메인 병합 후 주석 해제
-    // private final ChargeQueryService chargeQueryService;
+//     private final ChargeQueryService chargeQueryService;
 
     public LedgerEntryListResponse getLedgerEntries(
             Long termId,
@@ -51,16 +51,9 @@ public class LedgerService {
     ) {
         termQueryService.getTerm(termId);
 
-        // TODO: MemberQueryService 병합 후 주석 해제
-        // memberQueryService.validateTermMember(termId);
+        memberQueryService.validateTermMember(termId);
 
         validateDateRange(fromDate, toDate);
-
-        // TODO: Transaction-Funding 연관관계 병합 후 제거
-        //  현재 Transaction.funding 연관관계가 주석 처리되어 있어 fundingId 필터를 적용할 수 없습니다.
-        if (fundingId != null) {
-            throw new CustomException(ErrorCode.INVALID_REQUEST);
-        }
 
         PageRequest pageRequest = PageRequest.of(
                 Math.max(page, 0),
@@ -79,6 +72,7 @@ public class LedgerService {
                 toDate,
                 transactionType,
                 includeDeleted,
+                fundingId,
                 pageRequest
         );
 
@@ -97,24 +91,24 @@ public class LedgerService {
         // TODO: Charge 도메인 병합 후 주석 해제
         //  type이 ALL 또는 INCOME인 경우 회비 청구도 목록에 포함해야 합니다.
         //  CHARGE 날짜 필터 기준은 dueDate입니다.
-        // List<LedgerEntryResponse> chargeEntries = chargeQueryService.getLedgerCharges(
-        //         termId,
-        //         fromDate,
-        //         toDate,
-        //         includeDeleted,
-        //         pageRequest
-        // ).stream()
-        //         .map(LedgerEntryResponse::fromCharge)
-        //         .toList();
+//         List<LedgerEntryResponse> chargeEntries = chargeQueryService.getLedgerCharges(
+//                 termId,
+//                 fromDate,
+//                 toDate,
+//                 includeDeleted,
+//                 fundingId,
+//                 pageRequest
+//         ).stream()
+//                 .map(LedgerEntryResponse::fromCharge)
+//                 .toList();
 
-        // TODO: Charge 도메인 병합 후 Transaction + Charge를 날짜 기준으로 병합 정렬하고 페이지 처리하도록 변경
-        //  현재는 Charge 도메인이 없어서 Transaction 페이지만 반환합니다.
         Long totalIncome = transactionRepository.sumLedgerTransactionAmount(
                 termId,
                 fromDate,
                 toDate,
                 TransactionType.INCOME,
-                includeDeleted
+                includeDeleted,
+                fundingId
         );
 
         Long totalExpense = transactionRepository.sumLedgerTransactionAmount(
@@ -122,12 +116,13 @@ public class LedgerService {
                 fromDate,
                 toDate,
                 TransactionType.EXPENSE,
-                includeDeleted
+                includeDeleted,
+                fundingId
         );
 
         // TODO: Charge 도메인 병합 후 실제 납부 완료된 회비 금액을 totalIncome에 더해야 합니다.
         //  문서 기준: 회비 청구는 목록에서는 INCOME 성격이지만, 실제 총수입에는 납부된 금액만 반영합니다.
-        // totalIncome += chargeQueryService.sumPaidChargeAmount(termId, fromDate, toDate, includeDeleted);
+//         totalIncome += chargeQueryService.sumPaidChargeAmount(termId, fromDate, toDate, includeDeleted,fundingId);
 
         return LedgerEntryListResponse.of(
                 termId,

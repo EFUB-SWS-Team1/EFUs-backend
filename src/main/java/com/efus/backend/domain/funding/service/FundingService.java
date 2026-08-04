@@ -8,8 +8,7 @@ import com.efus.backend.domain.funding.repository.FundingRepository;
 import com.efus.backend.domain.term.entity.OrganizationTerm;
 import com.efus.backend.domain.term.service.TermQueryService;
  import com.efus.backend.domain.member.entity.TermMember;
-// TODO: MemberQueryService 병합 후 주석 해제
-// import com.efus.backend.domain.member.service.MemberQueryService;
+ import com.efus.backend.domain.member.service.MemberQueryService;
 import com.efus.backend.domain.transaction.entity.TransactionType;
 import com.efus.backend.global.exception.CustomException;
 import com.efus.backend.global.exception.ErrorCode;
@@ -28,18 +27,15 @@ public class FundingService {
     private final FundingRepository fundingRepository;
     private final TermQueryService termQueryService;
     private final FundingQueryService fundingQueryService;
-    // TODO: MemberQueryService 병합 후 주석 해제
-    // private final MemberQueryService memberQueryService;
-     private final TransactionRepository transactionRepository;
+    private final MemberQueryService memberQueryService;
+    private final TransactionRepository transactionRepository;
 
     public FundingResponse createFunding(Long termId, FundingCreateRequest request) {
         OrganizationTerm term = termQueryService.getTerm(termId);
 
-        // TODO: MemberQueryService 병합 후 주석 해제
-        // TermMember currentTermMember = memberQueryService.getCurrentTermMember(termId);
+        TermMember currentTermMember = memberQueryService.getCurrentTermMember(termId);
 
-        // TODO: MemberQueryService 병합 후 주석 해제
-        // memberQueryService.validateStaff(termId);
+        memberQueryService.validateStaff(termId);
 
         termQueryService.validateActiveTerm(termId);
 
@@ -47,8 +43,7 @@ public class FundingService {
 
         Funding funding = Funding.builder()
                 .organizationTerm(term)
-                // TODO: MemberQueryService 병합 후 주석 해제
-                // .createdByTermMember(currentTermMember)
+                .createdByTermMember(currentTermMember)
                 .name(request.name())
                 .budgetAmount(request.budgetAmount())
                 .participantCount(request.participantCount())
@@ -65,25 +60,18 @@ public class FundingService {
     public FundingDetailResponse getFundingDetail(Long termId, Long fundingId) {
         Funding funding = fundingQueryService.getFundingInTerm(termId, fundingId);
 
-        // TODO: MemberQueryService 병합 후 주석 해제
-        // memberQueryService.validateTermMember(termId);
+         memberQueryService.validateTermMember(termId);
 
-        // TODO: Transaction-Funding 연관관계 병합 후 주석 해제
-//         Long spentAmount = transactionRepository.sumAmountByFundingIdAndTransactionType(
-//                 fundingId,
-//                 TransactionType.EXPENSE
-//         );
+         Long spentAmount = transactionRepository.sumAmountByFundingIdAndTransactionType(
+                 fundingId,
+                 TransactionType.EXPENSE
+         );
 
-        // TODO: Transaction-Funding 연관관계 병합 후 주석 해제
-//         List<FundingDetailResponse.FundingTransactionResponse> transactions =
-//                 transactionRepository.findAllByFunding_IdAndDeletedFalseOrderByTransactionDateDesc(fundingId)
-//                         .stream()
-//                         .map(FundingDetailResponse.FundingTransactionResponse::from)
-//                         .toList();
-
-        // TODO: Transaction-Funding 연관관계 병합 후 아래 임시값 삭제
-        Long spentAmount = 0L;
-        List<FundingDetailResponse.FundingTransactionResponse> transactions = List.of();
+         List<FundingDetailResponse.FundingTransactionResponse> transactions =
+                 transactionRepository.findAllByFunding_IdAndDeletedFalseOrderByTransactionDateDesc(fundingId)
+                         .stream()
+                         .map(FundingDetailResponse.FundingTransactionResponse::from)
+                         .toList();
 
         return FundingDetailResponse.of(funding, spentAmount, transactions);
     }
