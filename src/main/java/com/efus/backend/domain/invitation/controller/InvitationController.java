@@ -3,6 +3,7 @@ package com.efus.backend.domain.invitation.controller;
 import com.efus.backend.domain.invitation.dto.request.InvitationCodeRequest;
 import com.efus.backend.domain.invitation.dto.request.InvitationReissueRequest;
 import com.efus.backend.domain.invitation.dto.response.InvitationListResponse;
+import com.efus.backend.domain.invitation.dto.response.InvitationJoinResponse;
 import com.efus.backend.domain.invitation.dto.response.InvitationReissueResponse;
 import com.efus.backend.domain.invitation.dto.response.InvitationValidateResponse;
 import com.efus.backend.domain.invitation.service.InvitationCommandService;
@@ -34,6 +35,18 @@ public class InvitationController {
                 invitationQueryService.validateInvitation(request);
 
         return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+    @PostMapping("/invitations/join")
+    public ResponseEntity<ApiResponse<InvitationJoinResponse>> join(
+            @Valid @RequestBody InvitationCodeRequest request
+    ) {
+        InvitationJoinResponse response = invitationCommandService.join(request);
+
+        return ResponseEntity.ok(ApiResponse.success(
+                response,
+                "기수 가입이 완료되었습니다."
+        ));
     }
 
     @GetMapping("/terms/{termId}/invitations")
