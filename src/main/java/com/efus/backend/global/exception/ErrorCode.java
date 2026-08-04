@@ -35,6 +35,9 @@ public enum ErrorCode {
     TERM_ALREADY_CLOSED(409, "Conflict", "TERM_ALREADY_CLOSED", "종료된 기수는 수정할 수 없습니다."),
     STAFF_PERMISSION_REQUIRED(403, "Forbidden", "STAFF_PERMISSION_REQUIRED", "운영진만 기수 정보를 수정할 수 있습니다."),
     EMPTY_UPDATE_REQUEST(400, "Bad Request", "EMPTY_UPDATE_REQUEST", "name과 startDate 중 최소 하나는 전달되야 합니다."),
+    TERM_END_DATE_REQUIRED(400, "Bad Request", "TERM_END_DATE_REQUIRED", "종료일은 필수로 작성해야 합니다."),
+    INVALID_TERM_END_DATE(400, "Bad Request" ,"INVALID_TERM_END_DATE", "종료일 형식이 올바르지 않습니다."),
+    END_DATE_BEFORE_START_DATE(400, "Bad Request", "END_DATE_BEFORE_START_DATE", "종료일이 기수 시작일보다 빠릅니다."),
 
     // Member 관련
     TERM_MEMBER_NOT_FOUND(404, "Not Found", "TERM_MEMBER_NOT_FOUND", "구성원을 찾을 수 없습니다."),
