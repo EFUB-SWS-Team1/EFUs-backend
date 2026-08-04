@@ -57,7 +57,9 @@ public class SecurityConfig {
 
         configuration.setAllowedOrigins(List.of(
                 "http://localhost:5173",
-                "https://efus-front.vercel.app"
+                "https://efus-front.vercel.app",
+                "http://172.30.1.19:5173"
+
         ));
 
         configuration.setAllowedMethods(List.of(

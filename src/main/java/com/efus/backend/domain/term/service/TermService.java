@@ -35,6 +35,7 @@ public class TermService {
     private final TermMemberRepository termMemberRepository;
     private final OrganizationRepository organizationRepository;
     private final InvitationCommandService invitationCommandService;
+    private final TermQueryService termQueryService;
 
     // [다음 기수 생성]
     @Transactional
@@ -66,31 +67,25 @@ public class TermService {
          return TermCreateResponse.of(term, organization, staffMember);
     }
 
+    // [기수 정보 수정]
     @Transactional
     public TermUpdateResponse updateTerm(Long termId, TermUpdateRequest request) {
-        // 1. 요청 값 검증: 수정할 필드가 하나도 없는 경우 처리 (400 EMPTY_UPDATE_REQUEST)
         if (request.isEmpty()) {
-            // throw new CustomException(ErrorCode.EMPTY_UPDATE_REQUEST);
+            throw new CustomException(ErrorCode.EMPTY_UPDATE_REQUEST);
         }
 
         User user = currentUserService.getCurrentUser();
+        OrganizationTerm term = termQueryService.getTerm(termId);
 
-        // 2. 기수 조회 (없으면 404 TERM_NOT_FOUND)
-        // OrganizationTerm term = termQueryService.getTerm(termId);
-        OrganizationTerm term = null; // 임시
-
-        // TODO 3. 상태 검증: 이미 종료된 기수인지 확인 (409 TERM_ALREADY_CLOSED)
+        // 검증
         if (term.getTermStatus() == TermStatus.CLOSED) {
-            // throw new CustomException(ErrorCode.TERM_ALREADY_CLOSED);
+            throw new CustomException(ErrorCode.TERM_ALREADY_CLOSED);
         }
+        validateCurrentTermStaff(termId, user.getId());
 
-        // TODO 4. 권한 검증: 해당 기수의 STAFF인지 확인 (403 STAFF_PERMISSION_REQUIRED)
+        // 정보 수정
+        term.update(request.name(), request.startDate());
 
-        // TODO 5. 정보 수정 (Dirty Checking)
-        // 값이 들어온 필드만(null이 아닌 경우만) 기존 엔티티의 값을 변경합니다.
-        // term.update(request.name(), request.startDate()); // OrganizationTerm 엔티티 내부에 update 메서드 생성 필요
-
-        // 6. 뼈대 반환
         return TermUpdateResponse.from(term);
     }
 
@@ -142,6 +137,15 @@ public class TermService {
         // 소속되어 있었다면, 그 역할이 STAFF인지 확인
         if (recentTermMember.getRole() != TermMemberRole.STAFF) {
             throw new CustomException(ErrorCode.TERM_CREATION_FORBIDDEN);
+        }
+    }
+
+    private void validateCurrentTermStaff(Long termId, Long userId) {
+        TermMember currentTermMember = termMemberRepository.findByTermIdAndUserId(termId, userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.TERM_MEMBER_NOT_FOUND));
+
+        if (currentTermMember.getRole() != TermMemberRole.STAFF) {
+            throw new CustomException(ErrorCode.STAFF_PERMISSION_REQUIRED);
         }
     }
 }
