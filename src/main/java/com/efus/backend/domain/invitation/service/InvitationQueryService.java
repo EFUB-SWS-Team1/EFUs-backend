@@ -32,8 +32,14 @@ public class InvitationQueryService {
     public InvitationValidateResponse validateInvitation(
             InvitationCodeRequest request
     ) {
-        String code = request.requireCode();
-        Invitation invitation = invitationRepository.findByCode(code)
+        Invitation invitation = getValidInvitation(request);
+        OrganizationTerm term = invitation.getTerm();
+
+        return InvitationValidateResponse.from(invitation, term);
+    }
+
+    public Invitation getValidInvitation(InvitationCodeRequest request) {
+        Invitation invitation = invitationRepository.findByCode(request.requireCode())
                 .orElseThrow(() -> new CustomException(ErrorCode.INVITATION_NOT_FOUND));
 
         if (!invitation.isActive()) {
@@ -47,7 +53,7 @@ public class InvitationQueryService {
         OrganizationTerm term = invitation.getTerm();
         termQueryService.validateActiveTerm(term.getId());
 
-        return InvitationValidateResponse.from(invitation, term);
+        return invitation;
     }
 
     public InvitationListResponse getInvitations(Long termId) {
