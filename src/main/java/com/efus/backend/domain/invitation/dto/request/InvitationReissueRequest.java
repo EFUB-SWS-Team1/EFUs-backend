@@ -4,6 +4,10 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import com.efus.backend.domain.member.entity.TermMemberRole;
+import com.efus.backend.global.exception.CustomException;
+import com.efus.backend.global.exception.ErrorCode;
+
 @Getter
 @NoArgsConstructor
 public class InvitationReissueRequest {
@@ -17,4 +21,12 @@ public class InvitationReissueRequest {
 
     @NotNull(message = "재발급할 초대 역할은 필수입니다.")
     private String role;
+
+    public TermMemberRole toRole() {
+        try {
+            return TermMemberRole.valueOf(role);
+        } catch (IllegalArgumentException exception) {
+            throw new CustomException(ErrorCode.INVALID_INVITATION_ROLE);
+        }
+    }
 }
