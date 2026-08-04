@@ -27,6 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -67,23 +68,34 @@ public class OrganizationService {
         return OrganizationCreateResponse.of(organization, term, staffMember);
     }
 
-//    @Transactional(readOnly = true)
-//    public OrganizationListResponse getMyOrganizations() {
-//        User user = currentUserService.getCurrentUser();
-//
-//        // 2. 유저가 가입한 단체 목록 조회
-//        //List<Organization> myOrganizations
-//
-//        // 3. 세미나에서 배운 stream().map() 적용
-//        List<OrganizationResponse> organizationResponses = myOrganizations.stream()
-//                .map(organization -> {
-//                    return OrganizationResponse.of(organization, organizationTerm, termMember, memberCount);
-//                })
-//                .toList();
-//
-//        // 4. ListResponse로 감싸서 반환
-//        return new OrganizationListResponse(organizationResponses);
-//    }
+    // 내 단체 목록 조회
+    @Transactional(readOnly = true)
+    public OrganizationListResponse getMyOrganizations() {
+        User user = currentUserService.getCurrentUser();
+        List<Organization> myOrganizations = organizationRepository.findOrganizationsByUserId(user.getId());
+
+        List<OrganizationResponse> organizationResponses = myOrganizations.stream()
+                .map(organization -> {
+                    Optional<OrganizationTerm> activeTermOpt = termRepository.findByOrganizationIdAndTermStatus(
+                            organization.getId(), TermStatus.ACTIVE);
+
+                    if (activeTermOpt.isEmpty()) {
+                        return OrganizationResponse.ofInactive(organization);
+                    }
+
+                    OrganizationTerm activeTerm = activeTermOpt.get();
+                    Long memberCount = termMemberRepository.countByTermId(activeTerm.getId());
+
+                    // 과거 기수에는 가입했으나, 현재 활성 기수에는 가입하지 않았을 수도 있으므로 orElse로 null 처리
+                    TermMember myTermMember = termMemberRepository.findByTermIdAndUserId(activeTerm.getId(), user.getId())
+                            .orElse(null);
+
+                    return OrganizationResponse.of(organization, activeTerm, myTermMember, memberCount);
+                })
+                .toList();
+
+        return OrganizationListResponse.from(organizationResponses);
+    }
 
     @Transactional(readOnly = true)
     public OrganizationDetailResponse getOrganizationDetail(Long organizationId) {
