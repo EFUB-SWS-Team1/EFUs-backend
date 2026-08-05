@@ -5,11 +5,13 @@ import com.efus.backend.domain.charge.dto.request.ChargeMemberListRequest;
 import com.efus.backend.domain.charge.dto.request.ChargePreviewRequest;
 import com.efus.backend.domain.charge.dto.request.ChargeUpdateRequest;
 import com.efus.backend.domain.charge.dto.request.ChargePaymentRequest;
+import com.efus.backend.domain.charge.dto.request.PaymentReversalRequest;
 import com.efus.backend.domain.charge.dto.response.ChargeCreateResponse;
 import com.efus.backend.domain.charge.dto.response.ChargeDetailResponse;
 import com.efus.backend.domain.charge.dto.response.ChargeMemberListResponse;
 import com.efus.backend.domain.charge.dto.response.ChargePreviewResponse;
 import com.efus.backend.domain.charge.dto.response.ChargePaymentResponse;
+import com.efus.backend.domain.charge.dto.response.PaymentReversalResponse;
 import com.efus.backend.domain.charge.service.ChargeService;
 import com.efus.backend.global.response.ApiResponse;
 import jakarta.validation.Valid;
@@ -86,5 +88,14 @@ public class ChargeController {
             @RequestBody(required = false) ChargePaymentRequest request) {
         return ResponseEntity.ok(ApiResponse.success(
                 chargeService.pay(chargeId, chargeMemberId, request)));
+    }
+
+    @PostMapping("/charges/{chargeId}/members/{chargeMemberId}/payment/reversal")
+    public ResponseEntity<ApiResponse<PaymentReversalResponse>> reversePayment(
+            @PathVariable Long chargeId,
+            @PathVariable Long chargeMemberId,
+            @Valid @RequestBody PaymentReversalRequest request) {
+        return ResponseEntity.ok(ApiResponse.success(
+                chargeService.reversePayment(chargeId, chargeMemberId, request)));
     }
 }

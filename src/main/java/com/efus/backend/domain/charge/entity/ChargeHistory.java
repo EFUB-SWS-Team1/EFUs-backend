@@ -23,6 +23,7 @@ public class ChargeHistory {
     @Enumerated(EnumType.STRING) @Column(name = "action_type", nullable = false, length = 30)
     private ChargeHistoryActionType actionType;
     @Column(nullable = false) private String summary;
+    @Column private String reason;
     @Column(name = "before_data", columnDefinition = "json") private String beforeData;
     @Column(name = "after_data", columnDefinition = "json") private String afterData;
     @Column(name = "changed_at", nullable = false) private LocalDateTime changedAt;
@@ -49,6 +50,17 @@ public class ChargeHistory {
                 ChargeHistoryActionType.PAYMENT_COMPLETED,
                 "회비 개별 납부를 완료 처리했습니다.", beforeData, afterData);
         history.chargeMember = chargeMember;
+        return history;
+    }
+
+    public static ChargeHistory paymentReversed(Charge charge, ChargeMember chargeMember,
+                                                TermMember actor, String reason,
+                                                String beforeData, String afterData) {
+        ChargeHistory history = new ChargeHistory(charge, actor,
+                ChargeHistoryActionType.PAYMENT_REVERSED,
+                "회비 개별 납부 처리를 취소했습니다.", beforeData, afterData);
+        history.chargeMember = chargeMember;
+        history.reason = reason;
         return history;
     }
 

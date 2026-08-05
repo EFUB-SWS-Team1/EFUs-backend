@@ -65,4 +65,9 @@ public class ChargeMember extends BaseEntity {
         this.paymentStatus = ChargeMemberPaymentStatus.PAID;
         this.paidAt = paidAt;
     }
+
+    public void reversePayment() {
+        this.paymentStatus = ChargeMemberPaymentStatus.UNPAID;
+        this.paidAt = null;
+    }
 }

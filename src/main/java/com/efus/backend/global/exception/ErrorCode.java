@@ -65,6 +65,7 @@ public enum ErrorCode {
     CHARGE_MEMBER_NOT_FOUND(404, "Not Found", "CHARGE_MEMBER_NOT_FOUND", "회비 청구 대상을 찾을 수 없습니다."),
     CHARGE_MEMBER_MISMATCH(400, "Bad Request", "CHARGE_MEMBER_MISMATCH", "해당 회비 청구의 대상이 아닙니다."),
     CHARGE_MEMBER_ALREADY_PAID(409, "Conflict", "CHARGE_MEMBER_ALREADY_PAID", "이미 납부 완료된 대상입니다."),
+    CHARGE_MEMBER_NOT_PAID(409, "Conflict", "CHARGE_MEMBER_NOT_PAID", "납부 완료 상태인 대상만 납부를 취소할 수 있습니다."),
 
     TRANSACTION_HISTORY_SERIALIZATION_FAILED(
             500,
