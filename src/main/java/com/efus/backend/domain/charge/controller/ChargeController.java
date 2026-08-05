@@ -1,12 +1,14 @@
 package com.efus.backend.domain.charge.controller;
 
 import com.efus.backend.domain.charge.dto.request.ChargeCreateRequest;
+import com.efus.backend.domain.charge.dto.request.BulkPaymentRequest;
 import com.efus.backend.domain.charge.dto.request.ChargeMemberListRequest;
 import com.efus.backend.domain.charge.dto.request.ChargePreviewRequest;
 import com.efus.backend.domain.charge.dto.request.ChargeUpdateRequest;
 import com.efus.backend.domain.charge.dto.request.ChargePaymentRequest;
 import com.efus.backend.domain.charge.dto.request.PaymentReversalRequest;
 import com.efus.backend.domain.charge.dto.response.ChargeCreateResponse;
+import com.efus.backend.domain.charge.dto.response.BulkPaymentResponse;
 import com.efus.backend.domain.charge.dto.response.ChargeDetailResponse;
 import com.efus.backend.domain.charge.dto.response.ChargeMemberListResponse;
 import com.efus.backend.domain.charge.dto.response.ChargePreviewResponse;
@@ -88,6 +90,14 @@ public class ChargeController {
             @RequestBody(required = false) ChargePaymentRequest request) {
         return ResponseEntity.ok(ApiResponse.success(
                 chargeService.pay(chargeId, chargeMemberId, request)));
+    }
+
+    @PostMapping("/charges/{chargeId}/payments/bulk")
+    public ResponseEntity<ApiResponse<BulkPaymentResponse>> bulkPayment(
+            @PathVariable Long chargeId,
+            @Valid @RequestBody BulkPaymentRequest request) {
+        return ResponseEntity.ok(ApiResponse.success(
+                chargeService.bulkPayment(chargeId, request)));
     }
 
     @PostMapping("/charges/{chargeId}/members/{chargeMemberId}/payment/reversal")

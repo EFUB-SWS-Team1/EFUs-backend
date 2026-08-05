@@ -1,6 +1,7 @@
 package com.efus.backend.domain.charge.service;
 
 import com.efus.backend.domain.charge.dto.request.ChargeCreateRequest;
+import com.efus.backend.domain.charge.dto.request.BulkPaymentRequest;
 import com.efus.backend.domain.charge.dto.request.ChargeMemberListRequest;
 import com.efus.backend.domain.charge.dto.request.ChargePreviewRequest;
 import com.efus.backend.domain.charge.dto.request.ChargeUpdateRequest;
@@ -9,6 +10,7 @@ import com.efus.backend.domain.charge.dto.request.PaymentReversalRequest;
 import com.efus.backend.domain.charge.dto.internal.ChargeSnapshot;
 import com.efus.backend.domain.charge.dto.internal.ChargeMemberPaymentSnapshot;
 import com.efus.backend.domain.charge.dto.response.ChargeCreateResponse;
+import com.efus.backend.domain.charge.dto.response.BulkPaymentResponse;
 import com.efus.backend.domain.charge.dto.response.ChargeDetailResponse;
 import com.efus.backend.domain.charge.dto.response.ChargeMemberListResponse;
 import com.efus.backend.domain.charge.dto.response.ChargeMemberResponse;
@@ -17,6 +19,7 @@ import com.efus.backend.domain.charge.dto.response.ChargePreviewResponse;
 import com.efus.backend.domain.charge.dto.response.ChargePaymentResponse;
 import com.efus.backend.domain.charge.dto.response.PaymentReversalResponse;
 import com.efus.backend.domain.charge.entity.Charge;
+import com.efus.backend.domain.charge.entity.BulkPaymentTargetMode;
 import com.efus.backend.domain.charge.entity.ChargeMember;
 import com.efus.backend.domain.charge.entity.ChargeMethod;
 import com.efus.backend.domain.charge.entity.ChargeMemberPaymentStatus;
@@ -294,6 +297,81 @@ public class ChargeService {
                 charge, chargeMember, actor, toJson(before), toJson(after)));
 
         return ChargePaymentResponse.from(chargeMember);
+    }
+
+    @Transactional
+    public BulkPaymentResponse bulkPayment(Long chargeId, BulkPaymentRequest request) {
+        Charge charge = getCharge(chargeId);
+        if (charge.isDeleted()) {
+            throw new CustomException(ErrorCode.CHARGE_ALREADY_DELETED);
+        }
+
+        Long termId = charge.getTerm().getId();
+        TermMember actor = memberQueryService.getCurrentActiveStaff(termId);
+        termQueryService.validateActiveTerm(termId);
+        validateBulkPaymentRequest(request);
+
+        List<ChargeMember> targets = resolveBulkPaymentTargets(chargeId, request);
+        if (request.targetMode() == BulkPaymentTargetMode.SELECTED) {
+            validateSelectedPaymentTargets(chargeId, request.chargeMemberIds(), targets);
+        }
+
+        LocalDateTime paidAt = request.paidAt() != null
+                ? request.paidAt() : LocalDateTime.now();
+        for (ChargeMember target : targets) {
+            markAsPaid(charge, target, actor, paidAt);
+        }
+
+        return new BulkPaymentResponse(chargeId, targets.size(), paidAt);
+    }
+
+    private void validateBulkPaymentRequest(BulkPaymentRequest request) {
+        if (request == null || request.targetMode() == null) {
+            throw new CustomException(ErrorCode.INVALID_CHARGE_REQUEST);
+        }
+        List<Long> ids = request.chargeMemberIds();
+        if (request.targetMode() == BulkPaymentTargetMode.ALL_UNPAID) {
+            if (ids != null) {
+                throw new CustomException(ErrorCode.INVALID_CHARGE_REQUEST);
+            }
+            return;
+        }
+        if (ids == null || ids.isEmpty()
+                || ids.stream().anyMatch(id -> id == null || id <= 0)
+                || new HashSet<>(ids).size() != ids.size()) {
+            throw new CustomException(ErrorCode.INVALID_CHARGE_REQUEST);
+        }
+    }
+
+    private List<ChargeMember> resolveBulkPaymentTargets(Long chargeId, BulkPaymentRequest request) {
+        if (request.targetMode() == BulkPaymentTargetMode.ALL_UNPAID) {
+            return chargeMemberRepository.findAllByChargeIdAndPaymentStatus(
+                    chargeId, ChargeMemberPaymentStatus.UNPAID);
+        }
+        return chargeMemberRepository.findAllByIdIn(request.chargeMemberIds());
+    }
+
+    private void validateSelectedPaymentTargets(Long chargeId, List<Long> requestedIds,
+                                                List<ChargeMember> targets) {
+        if (targets.size() != requestedIds.size()) {
+            throw new CustomException(ErrorCode.CHARGE_MEMBER_NOT_FOUND);
+        }
+        if (targets.stream().anyMatch(target -> !target.getCharge().getId().equals(chargeId))) {
+            throw new CustomException(ErrorCode.CHARGE_MEMBER_MISMATCH);
+        }
+        if (targets.stream().anyMatch(target ->
+                target.getPaymentStatus() == ChargeMemberPaymentStatus.PAID)) {
+            throw new CustomException(ErrorCode.CHARGE_MEMBER_ALREADY_PAID);
+        }
+    }
+
+    private void markAsPaid(Charge charge, ChargeMember chargeMember,
+                            TermMember actor, LocalDateTime paidAt) {
+        ChargeMemberPaymentSnapshot before = ChargeMemberPaymentSnapshot.from(chargeMember);
+        chargeMember.markAsPaid(paidAt);
+        ChargeMemberPaymentSnapshot after = ChargeMemberPaymentSnapshot.from(chargeMember);
+        chargeHistoryRepository.save(ChargeHistory.paymentCompleted(
+                charge, chargeMember, actor, toJson(before), toJson(after)));
     }
 
     @Transactional
