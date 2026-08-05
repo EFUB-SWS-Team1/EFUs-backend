@@ -5,6 +5,7 @@ import com.efus.backend.domain.charge.dto.request.ChargeMemberListRequest;
 import com.efus.backend.domain.charge.dto.request.ChargePreviewRequest;
 import com.efus.backend.domain.charge.dto.request.ChargeUpdateRequest;
 import com.efus.backend.domain.charge.dto.request.ChargePaymentRequest;
+import com.efus.backend.domain.charge.dto.request.PaymentReversalRequest;
 import com.efus.backend.domain.charge.dto.internal.ChargeSnapshot;
 import com.efus.backend.domain.charge.dto.internal.ChargeMemberPaymentSnapshot;
 import com.efus.backend.domain.charge.dto.response.ChargeCreateResponse;
@@ -14,6 +15,7 @@ import com.efus.backend.domain.charge.dto.response.ChargeMemberResponse;
 import com.efus.backend.domain.charge.dto.response.ChargePreviewMemberResponse;
 import com.efus.backend.domain.charge.dto.response.ChargePreviewResponse;
 import com.efus.backend.domain.charge.dto.response.ChargePaymentResponse;
+import com.efus.backend.domain.charge.dto.response.PaymentReversalResponse;
 import com.efus.backend.domain.charge.entity.Charge;
 import com.efus.backend.domain.charge.entity.ChargeMember;
 import com.efus.backend.domain.charge.entity.ChargeMethod;
@@ -292,6 +294,35 @@ public class ChargeService {
                 charge, chargeMember, actor, toJson(before), toJson(after)));
 
         return ChargePaymentResponse.from(chargeMember);
+    }
+
+    @Transactional
+    public PaymentReversalResponse reversePayment(Long chargeId, Long chargeMemberId,
+                                                   PaymentReversalRequest request) {
+        Charge charge = getCharge(chargeId);
+        ChargeMember chargeMember = chargeMemberRepository.findById(chargeMemberId)
+                .orElseThrow(() -> new CustomException(ErrorCode.CHARGE_MEMBER_NOT_FOUND));
+        if (!chargeMember.getCharge().getId().equals(chargeId)) {
+            throw new CustomException(ErrorCode.CHARGE_MEMBER_MISMATCH);
+        }
+        if (charge.isDeleted()) {
+            throw new CustomException(ErrorCode.CHARGE_ALREADY_DELETED);
+        }
+
+        Long termId = charge.getTerm().getId();
+        TermMember actor = memberQueryService.getCurrentActiveStaff(termId);
+        termQueryService.validateActiveTerm(termId);
+        if (chargeMember.getPaymentStatus() != ChargeMemberPaymentStatus.PAID) {
+            throw new CustomException(ErrorCode.CHARGE_MEMBER_NOT_PAID);
+        }
+
+        ChargeMemberPaymentSnapshot before = ChargeMemberPaymentSnapshot.from(chargeMember);
+        chargeMember.reversePayment();
+        ChargeMemberPaymentSnapshot after = ChargeMemberPaymentSnapshot.from(chargeMember);
+        chargeHistoryRepository.save(ChargeHistory.paymentReversed(
+                charge, chargeMember, actor, request.reason(), toJson(before), toJson(after)));
+
+        return PaymentReversalResponse.from(chargeMember);
     }
 
     @Transactional
