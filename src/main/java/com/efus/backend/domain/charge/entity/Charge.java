@@ -95,4 +95,10 @@ public class Charge extends BaseEntity {
         this.chargeMethod = chargeMethod;
         this.requestedAmount = requestedAmount;
     }
+
+    public void softDelete(TermMember deletedByTermMember, LocalDateTime deletedAt) {
+        this.deleted = true;
+        this.deletedAt = deletedAt;
+        this.deletedByTermMember = deletedByTermMember;
+    }
 }
