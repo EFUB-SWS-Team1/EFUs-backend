@@ -44,6 +44,7 @@ public enum ErrorCode {
     INACTIVE_TERM_MEMBER(403, "Forbidden", "INACTIVE_TERM_MEMBER", "비활성 구성원은 요청할 수 없습니다."),
 
     // Charge
+    CHARGE_NOT_FOUND(404, "Not Found", "CHARGE_NOT_FOUND", "회비 청구를 찾을 수 없습니다."),
     INVALID_CHARGE_REQUEST(400, "Bad Request", "INVALID_CHARGE_REQUEST", "올바르지 않은 회비 미리 계산 요청입니다."),
     CHARGE_TARGET_REQUIRED(400, "Bad Request", "CHARGE_TARGET_REQUIRED", "회비 청구 대상이 필요합니다."),
     DUPLICATE_CHARGE_TARGET(400, "Bad Request", "DUPLICATE_CHARGE_TARGET", "중복된 회비 청구 대상이 있습니다."),
