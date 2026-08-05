@@ -50,9 +50,9 @@ class ChargeMemberListServiceTest {
         givenCharge(1L, 10L);
         LocalDateTime paidAt = LocalDateTime.of(2026, 8, 5, 18, 30);
         List<ChargeMember> content = List.of(
-                chargeMember(3L, "Kim", TermMemberRole.MEMBER, 10_000L,
+                chargeMember(101L, 3L, "Kim", TermMemberRole.MEMBER, 10_000L,
                         ChargeMemberPaymentStatus.PAID, paidAt),
-                chargeMember(5L, "Lee", TermMemberRole.STAFF, 10_000L,
+                chargeMember(102L, 5L, "Lee", TermMemberRole.STAFF, 10_000L,
                         ChargeMemberPaymentStatus.UNPAID, null));
         when(chargeMemberRepository.findChargeMembers(1L, null, null, PageRequest.of(0, 7)))
                 .thenReturn(new PageImpl<>(content, PageRequest.of(0, 7), 9));
@@ -60,6 +60,7 @@ class ChargeMemberListServiceTest {
         ChargeMemberListResponse response = chargeService.getChargeMembers(1L, request(null, null, 0, 7));
 
         assertThat(response.members()).hasSize(2);
+        assertThat(response.members().get(0).chargeMemberId()).isEqualTo(101L);
         assertThat(response.members().get(0).termMemberId()).isEqualTo(3L);
         assertThat(response.members().get(0).name()).isEqualTo("Kim");
         assertThat(response.members().get(0).role()).isEqualTo(TermMemberRole.MEMBER);
@@ -121,7 +122,8 @@ class ChargeMemberListServiceTest {
         when(chargeRepository.findById(chargeId)).thenReturn(Optional.of(charge));
     }
 
-    private ChargeMember chargeMember(Long termMemberId, String name, TermMemberRole role,
+    private ChargeMember chargeMember(Long chargeMemberId, Long termMemberId, String name,
+                                      TermMemberRole role,
                                       Long amount, ChargeMemberPaymentStatus status, LocalDateTime paidAt) {
         User user = mock(User.class);
         when(user.getName()).thenReturn(name);
@@ -130,6 +132,7 @@ class ChargeMemberListServiceTest {
         when(termMember.getUser()).thenReturn(user);
         when(termMember.getRole()).thenReturn(role);
         ChargeMember chargeMember = mock(ChargeMember.class);
+        when(chargeMember.getId()).thenReturn(chargeMemberId);
         when(chargeMember.getTermMember()).thenReturn(termMember);
         when(chargeMember.getAssignedAmount()).thenReturn(amount);
         when(chargeMember.getPaymentStatus()).thenReturn(status);

@@ -60,4 +60,9 @@ public class ChargeMember extends BaseEntity {
     public void updateAssignedAmount(Long assignedAmount) {
         this.assignedAmount = assignedAmount;
     }
+
+    public void markAsPaid(LocalDateTime paidAt) {
+        this.paymentStatus = ChargeMemberPaymentStatus.PAID;
+        this.paidAt = paidAt;
+    }
 }

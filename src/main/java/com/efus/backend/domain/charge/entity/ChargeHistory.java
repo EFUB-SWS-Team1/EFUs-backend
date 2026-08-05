@@ -43,6 +43,15 @@ public class ChargeHistory {
                 "회비 청구 정보를 수정했습니다.", beforeData, afterData);
     }
 
+    public static ChargeHistory paymentCompleted(Charge charge, ChargeMember chargeMember,
+                                                 TermMember actor, String beforeData, String afterData) {
+        ChargeHistory history = new ChargeHistory(charge, actor,
+                ChargeHistoryActionType.PAYMENT_COMPLETED,
+                "회비 개별 납부를 완료 처리했습니다.", beforeData, afterData);
+        history.chargeMember = chargeMember;
+        return history;
+    }
+
     public static ChargeHistory deleted(Charge charge, TermMember actor, String beforeData, String afterData) {
         return new ChargeHistory(charge, actor, ChargeHistoryActionType.DELETE,
                 "회비 청구를 삭제했습니다.", beforeData, afterData);

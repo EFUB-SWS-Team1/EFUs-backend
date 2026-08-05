@@ -4,13 +4,16 @@ import com.efus.backend.domain.charge.dto.request.ChargeCreateRequest;
 import com.efus.backend.domain.charge.dto.request.ChargeMemberListRequest;
 import com.efus.backend.domain.charge.dto.request.ChargePreviewRequest;
 import com.efus.backend.domain.charge.dto.request.ChargeUpdateRequest;
+import com.efus.backend.domain.charge.dto.request.ChargePaymentRequest;
 import com.efus.backend.domain.charge.dto.internal.ChargeSnapshot;
+import com.efus.backend.domain.charge.dto.internal.ChargeMemberPaymentSnapshot;
 import com.efus.backend.domain.charge.dto.response.ChargeCreateResponse;
 import com.efus.backend.domain.charge.dto.response.ChargeDetailResponse;
 import com.efus.backend.domain.charge.dto.response.ChargeMemberListResponse;
 import com.efus.backend.domain.charge.dto.response.ChargeMemberResponse;
 import com.efus.backend.domain.charge.dto.response.ChargePreviewMemberResponse;
 import com.efus.backend.domain.charge.dto.response.ChargePreviewResponse;
+import com.efus.backend.domain.charge.dto.response.ChargePaymentResponse;
 import com.efus.backend.domain.charge.entity.Charge;
 import com.efus.backend.domain.charge.entity.ChargeMember;
 import com.efus.backend.domain.charge.entity.ChargeMethod;
@@ -260,6 +263,38 @@ public class ChargeService {
     }
 
     @Transactional
+    public ChargePaymentResponse pay(Long chargeId, Long chargeMemberId,
+                                     ChargePaymentRequest request) {
+        Charge charge = getCharge(chargeId);
+        if (charge.isDeleted()) {
+            throw new CustomException(ErrorCode.CHARGE_ALREADY_DELETED);
+        }
+
+        Long termId = charge.getTerm().getId();
+        TermMember actor = memberQueryService.getCurrentActiveStaff(termId);
+        termQueryService.validateActiveTerm(termId);
+
+        ChargeMember chargeMember = chargeMemberRepository.findById(chargeMemberId)
+                .orElseThrow(() -> new CustomException(ErrorCode.CHARGE_MEMBER_NOT_FOUND));
+        if (!chargeMember.getCharge().getId().equals(chargeId)) {
+            throw new CustomException(ErrorCode.CHARGE_MEMBER_MISMATCH);
+        }
+        if (chargeMember.getPaymentStatus() == ChargeMemberPaymentStatus.PAID) {
+            throw new CustomException(ErrorCode.CHARGE_MEMBER_ALREADY_PAID);
+        }
+
+        ChargeMemberPaymentSnapshot before = ChargeMemberPaymentSnapshot.from(chargeMember);
+        LocalDateTime paymentTime = request != null && request.paidAt() != null
+                ? request.paidAt() : LocalDateTime.now();
+        chargeMember.markAsPaid(paymentTime);
+        ChargeMemberPaymentSnapshot after = ChargeMemberPaymentSnapshot.from(chargeMember);
+        chargeHistoryRepository.save(ChargeHistory.paymentCompleted(
+                charge, chargeMember, actor, toJson(before), toJson(after)));
+
+        return ChargePaymentResponse.from(chargeMember);
+    }
+
+    @Transactional
     public void deleteCharge(Long chargeId) {
         Charge charge = getCharge(chargeId);
         if (charge.isDeleted()) {
@@ -313,7 +348,7 @@ public class ChargeService {
         }
     }
 
-    private String toJson(ChargeSnapshot snapshot) {
+    private String toJson(Object snapshot) {
         try {
             return objectMapper.writeValueAsString(snapshot);
         } catch (JsonProcessingException exception) {

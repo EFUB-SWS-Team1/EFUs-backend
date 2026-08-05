@@ -4,10 +4,12 @@ import com.efus.backend.domain.charge.dto.request.ChargeCreateRequest;
 import com.efus.backend.domain.charge.dto.request.ChargeMemberListRequest;
 import com.efus.backend.domain.charge.dto.request.ChargePreviewRequest;
 import com.efus.backend.domain.charge.dto.request.ChargeUpdateRequest;
+import com.efus.backend.domain.charge.dto.request.ChargePaymentRequest;
 import com.efus.backend.domain.charge.dto.response.ChargeCreateResponse;
 import com.efus.backend.domain.charge.dto.response.ChargeDetailResponse;
 import com.efus.backend.domain.charge.dto.response.ChargeMemberListResponse;
 import com.efus.backend.domain.charge.dto.response.ChargePreviewResponse;
+import com.efus.backend.domain.charge.dto.response.ChargePaymentResponse;
 import com.efus.backend.domain.charge.service.ChargeService;
 import com.efus.backend.global.response.ApiResponse;
 import jakarta.validation.Valid;
@@ -75,5 +77,14 @@ public class ChargeController {
     public ResponseEntity<Void> delete(@PathVariable Long chargeId) {
         chargeService.deleteCharge(chargeId);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/charges/{chargeId}/members/{chargeMemberId}/payment")
+    public ResponseEntity<ApiResponse<ChargePaymentResponse>> pay(
+            @PathVariable Long chargeId,
+            @PathVariable Long chargeMemberId,
+            @RequestBody(required = false) ChargePaymentRequest request) {
+        return ResponseEntity.ok(ApiResponse.success(
+                chargeService.pay(chargeId, chargeMemberId, request)));
     }
 }
