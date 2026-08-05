@@ -20,6 +20,7 @@ import com.efus.backend.global.exception.CustomException;
 import com.efus.backend.global.exception.ErrorCode;
 import java.util.List;
 import java.util.Optional;
+import java.time.LocalDateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -41,7 +42,7 @@ class ChargeDetailServiceTest {
 
     @Test
     void allUnpaidReturnsUnpaidAmountsCountsAndStatus() {
-        givenCharge(1L, 10L, 30_000L);
+        Charge charge = givenCharge(1L, 10L, 30_000L);
         List<ChargeMember> members = List.of(
                 chargeMember(10_000L, ChargeMemberPaymentStatus.UNPAID),
                 chargeMember(10_000L, ChargeMemberPaymentStatus.UNPAID),
@@ -57,6 +58,8 @@ class ChargeDetailServiceTest {
         assertThat(response.paidCount()).isZero();
         assertThat(response.unpaidCount()).isEqualTo(3);
         assertThat(response.paymentStatus()).isEqualTo(ChargePaymentStatus.UNPAID);
+        assertThat(response.deleted()).isFalse();
+        assertThat(response.deletedAt()).isNull();
         verify(memberQueryService).validateTermMember(10L);
     }
 
@@ -105,7 +108,24 @@ class ChargeDetailServiceTest {
                 .isEqualTo(ErrorCode.CHARGE_NOT_FOUND);
     }
 
-    private void givenCharge(Long chargeId, Long termId, Long requestedAmount) {
+    @Test
+    void deletedChargeStillReturnsDetailWithDeletedStateAndTimestamp() {
+        LocalDateTime deletedAt = LocalDateTime.of(2026, 8, 6, 3, 30);
+        Charge charge = givenCharge(1L, 10L, 30_000L);
+        when(charge.isDeleted()).thenReturn(true);
+        when(charge.getDeletedAt()).thenReturn(deletedAt);
+        when(chargeMemberRepository.findAllByChargeId(1L)).thenReturn(List.of());
+
+        ChargeDetailResponse response = chargeService.getChargeDetail(1L);
+
+        assertThat(response.deleted()).isTrue();
+        assertThat(response.deletedAt()).isEqualTo(deletedAt);
+        assertThat(response.chargeId()).isEqualTo(1L);
+        assertThat(response.requestedAmount()).isEqualTo(30_000L);
+        verify(memberQueryService).validateTermMember(10L);
+    }
+
+    private Charge givenCharge(Long chargeId, Long termId, Long requestedAmount) {
         OrganizationTerm term = mock(OrganizationTerm.class);
         when(term.getId()).thenReturn(termId);
         Charge charge = mock(Charge.class);
@@ -113,6 +133,7 @@ class ChargeDetailServiceTest {
         when(charge.getTerm()).thenReturn(term);
         when(charge.getRequestedAmount()).thenReturn(requestedAmount);
         when(chargeRepository.findById(chargeId)).thenReturn(Optional.of(charge));
+        return charge;
     }
 
     private ChargeMember chargeMember(Long assignedAmount, ChargeMemberPaymentStatus status) {

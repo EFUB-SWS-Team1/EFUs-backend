@@ -106,7 +106,8 @@ public class ChargeService {
                 charge.getId(), charge.getTitle(), charge.getChargeMethod(), charge.getDueDate(),
                 funding == null ? null : funding.getId(), funding == null ? null : funding.getName(),
                 charge.getMemo(), requestedAmount, paidAmount, requestedAmount - paidAmount,
-                targetCount, paidCount, unpaidCount, paymentStatus);
+                targetCount, paidCount, unpaidCount, paymentStatus,
+                charge.isDeleted(), charge.getDeletedAt());
     }
 
     public ChargeMemberListResponse getChargeMembers(Long chargeId, ChargeMemberListRequest request) {
