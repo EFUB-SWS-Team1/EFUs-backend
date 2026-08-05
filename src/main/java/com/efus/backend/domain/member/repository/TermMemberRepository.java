@@ -25,6 +25,7 @@ public interface TermMemberRepository extends JpaRepository<TermMember, Long> {
      );
 
      // 해당 기수에 속한 특정 TermMember 조회
+     @EntityGraph(attributePaths = "user")
      Optional<TermMember> findByIdAndTermId(
              Long termMemberId,
              Long termId

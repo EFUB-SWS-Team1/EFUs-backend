@@ -1,5 +1,6 @@
 package com.efus.backend.domain.charge.repository;
 
+import com.efus.backend.domain.charge.dto.internal.MemberChargeSummary;
 import com.efus.backend.domain.charge.entity.ChargeMember;
 import com.efus.backend.domain.charge.entity.ChargeMemberPaymentStatus;
 import java.util.List;
@@ -11,6 +12,23 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 public interface ChargeMemberRepository extends JpaRepository<ChargeMember, Long> {
+    @Query("""
+            select new com.efus.backend.domain.charge.dto.internal.MemberChargeSummary(
+                coalesce(sum(case when cm.paymentStatus = com.efus.backend.domain.charge.entity.ChargeMemberPaymentStatus.PAID
+                                  then cm.assignedAmount else 0L end), 0L),
+                coalesce(sum(case when cm.paymentStatus = com.efus.backend.domain.charge.entity.ChargeMemberPaymentStatus.UNPAID
+                                  then cm.assignedAmount else 0L end), 0L)
+            )
+            from ChargeMember cm
+            where cm.termMember.id = :termMemberId
+              and cm.charge.term.id = :termId
+              and cm.charge.deleted = false
+            """)
+    MemberChargeSummary summarizeAmountsByTermMember(
+            @Param("termId") Long termId,
+            @Param("termMemberId") Long termMemberId
+    );
+
     List<ChargeMember> findAllByChargeId(Long chargeId);
     List<ChargeMember> findAllByChargeIdAndPaymentStatus(
             Long chargeId, ChargeMemberPaymentStatus paymentStatus);
