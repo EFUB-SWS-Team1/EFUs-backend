@@ -29,6 +29,31 @@ public interface ChargeMemberRepository extends JpaRepository<ChargeMember, Long
             @Param("termMemberId") Long termMemberId
     );
 
+    @EntityGraph(attributePaths = "charge")
+    @Query(value = """
+            select cm
+            from ChargeMember cm
+            where cm.termMember.id = :termMemberId
+              and cm.charge.term.id = :termId
+              and cm.charge.deleted = false
+              and (:paymentStatus is null or cm.paymentStatus = :paymentStatus)
+            order by cm.charge.dueDate desc, cm.charge.id desc
+            """,
+            countQuery = """
+            select count(cm)
+            from ChargeMember cm
+            where cm.termMember.id = :termMemberId
+              and cm.charge.term.id = :termId
+              and cm.charge.deleted = false
+              and (:paymentStatus is null or cm.paymentStatus = :paymentStatus)
+            """)
+    Page<ChargeMember> findTermMemberCharges(
+            @Param("termId") Long termId,
+            @Param("termMemberId") Long termMemberId,
+            @Param("paymentStatus") ChargeMemberPaymentStatus paymentStatus,
+            Pageable pageable
+    );
+
     List<ChargeMember> findAllByChargeId(Long chargeId);
     List<ChargeMember> findAllByChargeIdAndPaymentStatus(
             Long chargeId, ChargeMemberPaymentStatus paymentStatus);

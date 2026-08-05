@@ -1,6 +1,8 @@
 package com.efus.backend.domain.member.controller;
 
 import com.efus.backend.domain.member.dto.request.TermMemberListRequest;
+import com.efus.backend.domain.member.dto.request.TermMemberChargeListRequest;
+import com.efus.backend.domain.member.dto.response.TermMemberChargeListResponse;
 import com.efus.backend.domain.member.dto.response.TermMemberListResponse;
 import com.efus.backend.domain.member.dto.response.TermMemberDetailResponse;
 import com.efus.backend.domain.member.service.MemberQueryService;
@@ -38,6 +40,18 @@ public class MemberController {
     ) {
         TermMemberDetailResponse response = memberQueryService
                 .getTermMemberDetail(termId, termMemberId);
+
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+    @GetMapping("/{termMemberId}/charges")
+    public ResponseEntity<ApiResponse<TermMemberChargeListResponse>> getTermMemberCharges(
+            @PathVariable Long termId,
+            @PathVariable Long termMemberId,
+            @Valid @ModelAttribute TermMemberChargeListRequest request
+    ) {
+        TermMemberChargeListResponse response = memberQueryService
+                .getTermMemberCharges(termId, termMemberId, request);
 
         return ResponseEntity.ok(ApiResponse.success(response));
     }
