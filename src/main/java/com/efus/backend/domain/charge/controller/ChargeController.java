@@ -1,6 +1,7 @@
 package com.efus.backend.domain.charge.controller;
 
 import com.efus.backend.domain.charge.dto.request.ChargeCreateRequest;
+import com.efus.backend.domain.charge.dto.request.ChargeHistoryListRequest;
 import com.efus.backend.domain.charge.dto.request.BulkPaymentRequest;
 import com.efus.backend.domain.charge.dto.request.ChargeMemberListRequest;
 import com.efus.backend.domain.charge.dto.request.ChargePreviewRequest;
@@ -8,6 +9,7 @@ import com.efus.backend.domain.charge.dto.request.ChargeUpdateRequest;
 import com.efus.backend.domain.charge.dto.request.ChargePaymentRequest;
 import com.efus.backend.domain.charge.dto.request.PaymentReversalRequest;
 import com.efus.backend.domain.charge.dto.response.ChargeCreateResponse;
+import com.efus.backend.domain.charge.dto.response.ChargeHistoryListResponse;
 import com.efus.backend.domain.charge.dto.response.BulkPaymentResponse;
 import com.efus.backend.domain.charge.dto.response.ChargeDetailResponse;
 import com.efus.backend.domain.charge.dto.response.ChargeMemberListResponse;
@@ -15,6 +17,7 @@ import com.efus.backend.domain.charge.dto.response.ChargePreviewResponse;
 import com.efus.backend.domain.charge.dto.response.ChargePaymentResponse;
 import com.efus.backend.domain.charge.dto.response.PaymentReversalResponse;
 import com.efus.backend.domain.charge.service.ChargeService;
+import com.efus.backend.domain.charge.service.ChargeHistoryService;
 import com.efus.backend.global.response.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -36,6 +39,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class ChargeController {
 
     private final ChargeService chargeService;
+    private final ChargeHistoryService chargeHistoryService;
 
     @PostMapping("/terms/{termId}/charges")
     public ResponseEntity<ApiResponse<ChargeCreateResponse>> create(
@@ -61,6 +65,15 @@ public class ChargeController {
             @PathVariable Long chargeId
     ) {
         return ResponseEntity.ok(ApiResponse.success(chargeService.getChargeDetail(chargeId)));
+    }
+
+    @GetMapping("/charges/{chargeId}/histories")
+    public ResponseEntity<ApiResponse<ChargeHistoryListResponse>> getChargeHistories(
+            @PathVariable Long chargeId,
+            @Valid @ModelAttribute ChargeHistoryListRequest request
+    ) {
+        return ResponseEntity.ok(ApiResponse.success(
+                chargeHistoryService.getChargeHistories(chargeId, request)));
     }
 
     @GetMapping("/charges/{chargeId}/members")
