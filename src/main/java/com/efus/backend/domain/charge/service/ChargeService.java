@@ -3,11 +3,14 @@ package com.efus.backend.domain.charge.service;
 import com.efus.backend.domain.charge.dto.request.ChargeCreateRequest;
 import com.efus.backend.domain.charge.dto.request.ChargePreviewRequest;
 import com.efus.backend.domain.charge.dto.response.ChargeCreateResponse;
+import com.efus.backend.domain.charge.dto.response.ChargeDetailResponse;
 import com.efus.backend.domain.charge.dto.response.ChargePreviewMemberResponse;
 import com.efus.backend.domain.charge.dto.response.ChargePreviewResponse;
 import com.efus.backend.domain.charge.entity.Charge;
 import com.efus.backend.domain.charge.entity.ChargeMember;
 import com.efus.backend.domain.charge.entity.ChargeMethod;
+import com.efus.backend.domain.charge.entity.ChargeMemberPaymentStatus;
+import com.efus.backend.domain.charge.entity.ChargePaymentStatus;
 import com.efus.backend.domain.charge.entity.ChargeTargetMode;
 import com.efus.backend.domain.charge.repository.ChargeMemberRepository;
 import com.efus.backend.domain.charge.repository.ChargeRepository;
@@ -50,6 +53,46 @@ public class ChargeService {
     // Preview unit tests and isolated callers do not need persistence collaborators.
     public ChargeService(TermQueryService termQueryService, MemberQueryService memberQueryService) {
         this(termQueryService, memberQueryService, null, null, null);
+    }
+
+    public ChargeDetailResponse getChargeDetail(Long chargeId) {
+        Charge charge = chargeRepository.findById(chargeId)
+                .orElseThrow(() -> new CustomException(ErrorCode.CHARGE_NOT_FOUND));
+        memberQueryService.validateTermMember(charge.getTerm().getId());
+
+        List<ChargeMember> chargeMembers = chargeMemberRepository.findAllByChargeId(chargeId);
+        long paidAmount = chargeMembers.stream()
+                .filter(member -> member.getPaymentStatus() == ChargeMemberPaymentStatus.PAID)
+                .mapToLong(ChargeMember::getAssignedAmount)
+                .sum();
+        long targetCount = chargeMembers.size();
+        long paidCount = chargeMembers.stream()
+                .filter(member -> member.getPaymentStatus() == ChargeMemberPaymentStatus.PAID)
+                .count();
+        long unpaidCount = chargeMembers.stream()
+                .filter(member -> member.getPaymentStatus() == ChargeMemberPaymentStatus.UNPAID)
+                .count();
+        long requestedAmount = charge.getRequestedAmount();
+        ChargePaymentStatus paymentStatus = calculatePaymentStatus(
+                requestedAmount, paidAmount, targetCount, paidCount);
+        Funding funding = charge.getFunding();
+
+        return new ChargeDetailResponse(
+                charge.getId(), charge.getTitle(), charge.getChargeMethod(), charge.getDueDate(),
+                funding == null ? null : funding.getId(), funding == null ? null : funding.getName(),
+                charge.getMemo(), requestedAmount, paidAmount, requestedAmount - paidAmount,
+                targetCount, paidCount, unpaidCount, paymentStatus);
+    }
+
+    private ChargePaymentStatus calculatePaymentStatus(
+            long requestedAmount, long paidAmount, long targetCount, long paidCount) {
+        if (paidAmount == 0L || paidCount == 0L) {
+            return ChargePaymentStatus.UNPAID;
+        }
+        if (paidAmount == requestedAmount || paidCount == targetCount) {
+            return ChargePaymentStatus.PAID;
+        }
+        return ChargePaymentStatus.PARTIALLY_PAID;
     }
 
     public ChargePreviewResponse preview(Long termId, ChargePreviewRequest request) {
