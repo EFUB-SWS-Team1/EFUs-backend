@@ -12,6 +12,8 @@ import org.springframework.data.repository.query.Param;
 
 public interface ChargeMemberRepository extends JpaRepository<ChargeMember, Long> {
     List<ChargeMember> findAllByChargeId(Long chargeId);
+    boolean existsByChargeIdAndPaymentStatus(Long chargeId, ChargeMemberPaymentStatus paymentStatus);
+    void deleteAllByChargeId(Long chargeId);
 
     @EntityGraph(attributePaths = {"termMember", "termMember.user"})
     @Query(value = """
