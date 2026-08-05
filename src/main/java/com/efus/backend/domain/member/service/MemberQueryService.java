@@ -49,6 +49,10 @@ public class MemberQueryService {
     }
 
     public void validateActiveStaff(Long termId) {
+        getCurrentActiveStaff(termId);
+    }
+
+    public TermMember getCurrentActiveStaff(Long termId) {
         TermMember currentTermMember = getCurrentTermMember(termId);
 
         if (!currentTermMember.isStaff()) {
@@ -58,6 +62,8 @@ public class MemberQueryService {
         if (!currentTermMember.isActive()) {
             throw new CustomException(ErrorCode.INACTIVE_TERM_MEMBER);
         }
+
+        return currentTermMember;
     }
 
     public List<TermMember> getAllActiveMembers(Long termId) {
