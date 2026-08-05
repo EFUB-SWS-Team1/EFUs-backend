@@ -48,8 +48,40 @@ public class MemberQueryService {
         }
     }
 
+    public void validateActiveStaff(Long termId) {
+        getCurrentActiveStaff(termId);
+    }
+
+    public TermMember getCurrentActiveStaff(Long termId) {
+        TermMember currentTermMember = getCurrentTermMember(termId);
+
+        if (!currentTermMember.isStaff()) {
+            throw new CustomException(ErrorCode.STAFF_REQUIRED);
+        }
+
+        if (!currentTermMember.isActive()) {
+            throw new CustomException(ErrorCode.INACTIVE_TERM_MEMBER);
+        }
+
+        return currentTermMember;
+    }
+
     public List<TermMember> getAllActiveMembers(Long termId) {
         return termMemberRepository.findAllByTermIdAndStatus(termId, TermMemberStatus.ACTIVE);
+    }
+
+    public List<TermMember> getSelectedActiveMembers(Long termId, List<Long> termMemberIds) {
+        List<TermMember> members = termMemberRepository.findAllByTermIdAndIdIn(termId, termMemberIds);
+
+        if (members.size() != termMemberIds.size()) {
+            throw new CustomException(ErrorCode.INVALID_CHARGE_TARGET);
+        }
+
+        if (members.stream().anyMatch(member -> !member.isActive())) {
+            throw new CustomException(ErrorCode.INACTIVE_CHARGE_TARGET);
+        }
+
+        return members;
     }
 
     public TermMemberListResponse getTermMembers(

@@ -41,6 +41,16 @@ public enum ErrorCode {
 
     // Member 관련
     TERM_MEMBER_NOT_FOUND(404, "Not Found", "TERM_MEMBER_NOT_FOUND", "구성원을 찾을 수 없습니다."),
+    INACTIVE_TERM_MEMBER(403, "Forbidden", "INACTIVE_TERM_MEMBER", "비활성 구성원은 요청할 수 없습니다."),
+
+    // Charge
+    CHARGE_NOT_FOUND(404, "Not Found", "CHARGE_NOT_FOUND", "회비 청구를 찾을 수 없습니다."),
+    INVALID_CHARGE_REQUEST(400, "Bad Request", "INVALID_CHARGE_REQUEST", "올바르지 않은 회비 미리 계산 요청입니다."),
+    CHARGE_TARGET_REQUIRED(400, "Bad Request", "CHARGE_TARGET_REQUIRED", "회비 청구 대상이 필요합니다."),
+    DUPLICATE_CHARGE_TARGET(400, "Bad Request", "DUPLICATE_CHARGE_TARGET", "중복된 회비 청구 대상이 있습니다."),
+    INVALID_CHARGE_TARGET(400, "Bad Request", "INVALID_CHARGE_TARGET", "올바르지 않은 회비 청구 대상입니다."),
+    INACTIVE_CHARGE_TARGET(400, "Bad Request", "INACTIVE_CHARGE_TARGET", "비활성 구성원은 회비 청구 대상이 될 수 없습니다."),
+    CHARGE_TARGET_NOT_FOUND(400, "Bad Request", "CHARGE_TARGET_NOT_FOUND", "회비 청구 대상이 없습니다."),
 
     // 서버 관련
     KAKAO_API_ERROR(502, "Bad Gateway", "KAKAO_API_ERROR", "카카오 서버와 통신하는 중 오류가 발생했습니다."),

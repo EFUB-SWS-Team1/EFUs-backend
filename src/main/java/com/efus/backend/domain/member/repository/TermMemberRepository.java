@@ -3,6 +3,7 @@ package com.efus.backend.domain.member.repository;
 import com.efus.backend.domain.member.entity.TermMember;
 import com.efus.backend.domain.member.entity.TermMemberRole;
 import com.efus.backend.domain.member.entity.TermMemberStatus;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
@@ -33,6 +34,11 @@ public interface TermMemberRepository extends JpaRepository<TermMember, Long> {
      List<TermMember> findAllByTermIdAndStatus(
              Long termId,
              TermMemberStatus status
+     );
+
+     List<TermMember> findAllByTermIdAndIdIn(
+             Long termId,
+             Collection<Long> termMemberIds
      );
 
      // User가 특정 단체의 어떤 기수에 속한 적 있는지 확인
