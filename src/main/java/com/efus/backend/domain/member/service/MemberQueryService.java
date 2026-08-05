@@ -3,6 +3,9 @@ package com.efus.backend.domain.member.service;
 import com.efus.backend.domain.charge.dto.internal.MemberChargeSummary;
 import com.efus.backend.domain.charge.service.ChargeSummaryService;
 import com.efus.backend.domain.member.dto.request.TermMemberListRequest;
+import com.efus.backend.domain.member.dto.request.TermMemberChargeListRequest;
+import com.efus.backend.domain.member.dto.response.TermMemberChargeListResponse;
+import com.efus.backend.domain.member.dto.response.TermMemberChargeResponse;
 import com.efus.backend.domain.member.dto.response.TermMemberListResponse;
 import com.efus.backend.domain.member.dto.response.TermMemberDetailResponse;
 import com.efus.backend.domain.member.dto.response.TermMemberResponse;
@@ -135,6 +138,27 @@ public class MemberQueryService {
                 .calculateMemberChargeSummary(termId, termMemberId);
 
         return TermMemberDetailResponse.of(termMember, summary);
+    }
+
+    public TermMemberChargeListResponse getTermMemberCharges(
+            Long termId, Long termMemberId, TermMemberChargeListRequest request
+    ) {
+        termQueryService.getTerm(termId);
+
+        TermMember target = termMemberRepository.findById(termMemberId)
+                .orElseThrow(() -> new CustomException(ErrorCode.TERM_MEMBER_NOT_FOUND));
+        if (!target.getTerm().getId().equals(termId)) {
+            throw new CustomException(ErrorCode.TERM_MEMBER_NOT_FOUND);
+        }
+
+        validateTermMember(termId);
+
+        Pageable pageable = PageRequest.of(request.getPage(), request.getSize());
+        Page<TermMemberChargeResponse> charges = chargeSummaryService.getTermMemberCharges(
+                termId, termMemberId, request.getPaymentStatus(), pageable
+        ).map(TermMemberChargeResponse::from);
+
+        return TermMemberChargeListResponse.from(charges);
     }
 
     private String normalizeKeyword(String keyword) {
