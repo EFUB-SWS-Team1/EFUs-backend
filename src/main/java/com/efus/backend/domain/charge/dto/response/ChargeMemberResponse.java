@@ -6,6 +6,7 @@ import com.efus.backend.domain.member.entity.TermMemberRole;
 import java.time.LocalDateTime;
 
 public record ChargeMemberResponse(
+        Long chargeMemberId,
         Long termMemberId,
         String name,
         TermMemberRole role,
@@ -15,6 +16,7 @@ public record ChargeMemberResponse(
 ) {
     public static ChargeMemberResponse from(ChargeMember chargeMember) {
         return new ChargeMemberResponse(
+                chargeMember.getId(),
                 chargeMember.getTermMember().getId(),
                 chargeMember.getTermMember().getUser().getName(),
                 chargeMember.getTermMember().getRole(),

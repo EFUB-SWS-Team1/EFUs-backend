@@ -51,6 +51,10 @@ public enum ErrorCode {
     INVALID_CHARGE_TARGET(400, "Bad Request", "INVALID_CHARGE_TARGET", "올바르지 않은 회비 청구 대상입니다."),
     INACTIVE_CHARGE_TARGET(400, "Bad Request", "INACTIVE_CHARGE_TARGET", "비활성 구성원은 회비 청구 대상이 될 수 없습니다."),
     CHARGE_TARGET_NOT_FOUND(400, "Bad Request", "CHARGE_TARGET_NOT_FOUND", "회비 청구 대상이 없습니다."),
+    CHARGE_ALREADY_DELETED(400, "Bad Request", "CHARGE_ALREADY_DELETED", "삭제된 회비 청구입니다."),
+    CHARGE_UPDATE_RESTRICTED_AFTER_PAYMENT(400, "Bad Request", "CHARGE_UPDATE_RESTRICTED_AFTER_PAYMENT", "납부자가 있는 회비 청구는 금액 또는 대상을 수정할 수 없습니다."),
+    CHARGE_HISTORY_SERIALIZATION_FAILED(500, "Internal Server Error", "CHARGE_HISTORY_SERIALIZATION_FAILED", "회비 이력 데이터 변환에 실패했습니다."),
+    CHARGE_HAS_PAYMENT(409, "Conflict", "CHARGE_HAS_PAYMENT", "납부 내역이 존재하는 회비 청구는 삭제할 수 없습니다. 먼저 납부 처리를 취소해 주세요."),
 
     // 서버 관련
     KAKAO_API_ERROR(502, "Bad Gateway", "KAKAO_API_ERROR", "카카오 서버와 통신하는 중 오류가 발생했습니다."),
@@ -58,6 +62,11 @@ public enum ErrorCode {
     //Transaction 관련
     TRANSACTION_NOT_FOUND(404, "Not Found", "TRANSACTION_NOT_FOUND", "거래를 찾을 수 없습니다."),
     TRANSACTION_ALREADY_DELETED(400, "Bad Request", "TRANSACTION_ALREADY_DELETED", "삭제된 거래입니다."),
+    CHARGE_MEMBER_NOT_FOUND(404, "Not Found", "CHARGE_MEMBER_NOT_FOUND", "회비 청구 대상을 찾을 수 없습니다."),
+    CHARGE_MEMBER_MISMATCH(400, "Bad Request", "CHARGE_MEMBER_MISMATCH", "해당 회비 청구의 대상이 아닙니다."),
+    CHARGE_MEMBER_ALREADY_PAID(409, "Conflict", "CHARGE_MEMBER_ALREADY_PAID", "이미 납부 완료된 대상입니다."),
+    CHARGE_MEMBER_NOT_PAID(409, "Conflict", "CHARGE_MEMBER_NOT_PAID", "납부 완료 상태인 대상만 납부를 취소할 수 있습니다."),
+
     TRANSACTION_HISTORY_SERIALIZATION_FAILED(
             500,
             "Internal Server Error",

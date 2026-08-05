@@ -56,4 +56,18 @@ public class ChargeMember extends BaseEntity {
     public static ChargeMember create(Charge charge, TermMember termMember, Long assignedAmount) {
         return new ChargeMember(charge, termMember, assignedAmount);
     }
+
+    public void updateAssignedAmount(Long assignedAmount) {
+        this.assignedAmount = assignedAmount;
+    }
+
+    public void markAsPaid(LocalDateTime paidAt) {
+        this.paymentStatus = ChargeMemberPaymentStatus.PAID;
+        this.paidAt = paidAt;
+    }
+
+    public void reversePayment() {
+        this.paymentStatus = ChargeMemberPaymentStatus.UNPAID;
+        this.paidAt = null;
+    }
 }
