@@ -85,4 +85,14 @@ public class Charge extends BaseEntity {
                                 Long requestedAmount) {
         return new Charge(term, funding, createdByTermMember, title, chargeMethod, dueDate, memo, requestedAmount);
     }
+
+    public void update(String title, LocalDate dueDate, Funding funding, String memo,
+                       ChargeMethod chargeMethod, Long requestedAmount) {
+        this.title = title;
+        this.dueDate = dueDate;
+        this.funding = funding;
+        this.memo = memo;
+        this.chargeMethod = chargeMethod;
+        this.requestedAmount = requestedAmount;
+    }
 }
