@@ -10,11 +10,14 @@ import java.util.List;
 
 public record ChargeSnapshot(String title, ChargeMethod chargeMethod, LocalDate dueDate,
                              Long fundingId, String memo, Long requestedAmount,
+                             boolean deleted, LocalDateTime deletedAt, Long deletedByTermMemberId,
                              List<MemberSnapshot> members) {
     public static ChargeSnapshot from(Charge charge, List<ChargeMember> members) {
         return new ChargeSnapshot(charge.getTitle(), charge.getChargeMethod(), charge.getDueDate(),
                 charge.getFunding() == null ? null : charge.getFunding().getId(), charge.getMemo(),
-                charge.getRequestedAmount(), members.stream().map(MemberSnapshot::from).toList());
+                charge.getRequestedAmount(), charge.isDeleted(), charge.getDeletedAt(),
+                charge.getDeletedByTermMember() == null ? null : charge.getDeletedByTermMember().getId(),
+                members.stream().map(MemberSnapshot::from).toList());
     }
 
     public record MemberSnapshot(Long termMemberId, Long assignedAmount,

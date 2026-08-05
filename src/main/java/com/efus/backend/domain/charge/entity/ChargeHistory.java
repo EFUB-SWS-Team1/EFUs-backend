@@ -27,17 +27,24 @@ public class ChargeHistory {
     @Column(name = "after_data", columnDefinition = "json") private String afterData;
     @Column(name = "changed_at", nullable = false) private LocalDateTime changedAt;
 
-    private ChargeHistory(Charge charge, TermMember actor, String beforeData, String afterData) {
+    private ChargeHistory(Charge charge, TermMember actor, ChargeHistoryActionType actionType,
+                          String summary, String beforeData, String afterData) {
         this.charge = charge;
         this.actorTermMember = actor;
-        this.actionType = ChargeHistoryActionType.CHARGE_UPDATED;
-        this.summary = "회비 청구 정보를 수정했습니다.";
+        this.actionType = actionType;
+        this.summary = summary;
         this.beforeData = beforeData;
         this.afterData = afterData;
         this.changedAt = LocalDateTime.now();
     }
 
     public static ChargeHistory updated(Charge charge, TermMember actor, String beforeData, String afterData) {
-        return new ChargeHistory(charge, actor, beforeData, afterData);
+        return new ChargeHistory(charge, actor, ChargeHistoryActionType.CHARGE_UPDATED,
+                "회비 청구 정보를 수정했습니다.", beforeData, afterData);
+    }
+
+    public static ChargeHistory deleted(Charge charge, TermMember actor, String beforeData, String afterData) {
+        return new ChargeHistory(charge, actor, ChargeHistoryActionType.DELETE,
+                "회비 청구를 삭제했습니다.", beforeData, afterData);
     }
 }

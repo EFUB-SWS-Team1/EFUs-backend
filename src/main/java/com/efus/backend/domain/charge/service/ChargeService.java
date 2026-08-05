@@ -34,6 +34,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
+import java.time.LocalDateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -255,6 +256,29 @@ public class ChargeService {
         ChargeSnapshot after = ChargeSnapshot.from(charge, members);
         chargeHistoryRepository.save(ChargeHistory.updated(charge, actor, toJson(before), toJson(after)));
         return getChargeDetail(chargeId);
+    }
+
+    @Transactional
+    public void deleteCharge(Long chargeId) {
+        Charge charge = getCharge(chargeId);
+        if (charge.isDeleted()) {
+            throw new CustomException(ErrorCode.CHARGE_ALREADY_DELETED);
+        }
+
+        Long termId = charge.getTerm().getId();
+        TermMember actor = memberQueryService.getCurrentActiveStaff(termId);
+        termQueryService.validateActiveTerm(termId);
+        if (chargeMemberRepository.existsByChargeIdAndPaymentStatus(
+                chargeId, ChargeMemberPaymentStatus.PAID)) {
+            throw new CustomException(ErrorCode.CHARGE_HAS_PAYMENT);
+        }
+
+        List<ChargeMember> members = chargeMemberRepository.findAllByChargeId(chargeId);
+        ChargeSnapshot before = ChargeSnapshot.from(charge, members);
+        charge.softDelete(actor, LocalDateTime.now());
+        ChargeSnapshot after = ChargeSnapshot.from(charge, members);
+        chargeHistoryRepository.save(ChargeHistory.deleted(
+                charge, actor, toJson(before), toJson(after)));
     }
 
     private void validateBasicUpdate(ChargeUpdateRequest request) {
