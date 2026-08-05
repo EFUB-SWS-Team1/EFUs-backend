@@ -1,9 +1,12 @@
 package com.efus.backend.domain.charge.service;
 
 import com.efus.backend.domain.charge.dto.request.ChargeCreateRequest;
+import com.efus.backend.domain.charge.dto.request.ChargeMemberListRequest;
 import com.efus.backend.domain.charge.dto.request.ChargePreviewRequest;
 import com.efus.backend.domain.charge.dto.response.ChargeCreateResponse;
 import com.efus.backend.domain.charge.dto.response.ChargeDetailResponse;
+import com.efus.backend.domain.charge.dto.response.ChargeMemberListResponse;
+import com.efus.backend.domain.charge.dto.response.ChargeMemberResponse;
 import com.efus.backend.domain.charge.dto.response.ChargePreviewMemberResponse;
 import com.efus.backend.domain.charge.dto.response.ChargePreviewResponse;
 import com.efus.backend.domain.charge.entity.Charge;
@@ -26,8 +29,12 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 @Service
 @Transactional(readOnly = true)
@@ -56,8 +63,7 @@ public class ChargeService {
     }
 
     public ChargeDetailResponse getChargeDetail(Long chargeId) {
-        Charge charge = chargeRepository.findById(chargeId)
-                .orElseThrow(() -> new CustomException(ErrorCode.CHARGE_NOT_FOUND));
+        Charge charge = getCharge(chargeId);
         memberQueryService.validateTermMember(charge.getTerm().getId());
 
         List<ChargeMember> chargeMembers = chargeMemberRepository.findAllByChargeId(chargeId);
@@ -82,6 +88,24 @@ public class ChargeService {
                 funding == null ? null : funding.getId(), funding == null ? null : funding.getName(),
                 charge.getMemo(), requestedAmount, paidAmount, requestedAmount - paidAmount,
                 targetCount, paidCount, unpaidCount, paymentStatus);
+    }
+
+    public ChargeMemberListResponse getChargeMembers(Long chargeId, ChargeMemberListRequest request) {
+        Charge charge = getCharge(chargeId);
+        memberQueryService.validateTermMember(charge.getTerm().getId());
+
+        String keyword = StringUtils.hasText(request.getKeyword()) ? request.getKeyword().trim() : null;
+        Pageable pageable = PageRequest.of(request.getPage(), request.getSize());
+        Page<ChargeMemberResponse> members = chargeMemberRepository.findChargeMembers(
+                chargeId, keyword, request.getPaymentStatus(), pageable
+        ).map(ChargeMemberResponse::from);
+
+        return ChargeMemberListResponse.from(members);
+    }
+
+    private Charge getCharge(Long chargeId) {
+        return chargeRepository.findById(chargeId)
+                .orElseThrow(() -> new CustomException(ErrorCode.CHARGE_NOT_FOUND));
     }
 
     private ChargePaymentStatus calculatePaymentStatus(

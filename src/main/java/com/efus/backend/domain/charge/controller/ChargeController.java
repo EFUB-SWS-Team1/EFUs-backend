@@ -1,9 +1,11 @@
 package com.efus.backend.domain.charge.controller;
 
 import com.efus.backend.domain.charge.dto.request.ChargeCreateRequest;
+import com.efus.backend.domain.charge.dto.request.ChargeMemberListRequest;
 import com.efus.backend.domain.charge.dto.request.ChargePreviewRequest;
 import com.efus.backend.domain.charge.dto.response.ChargeCreateResponse;
 import com.efus.backend.domain.charge.dto.response.ChargeDetailResponse;
+import com.efus.backend.domain.charge.dto.response.ChargeMemberListResponse;
 import com.efus.backend.domain.charge.dto.response.ChargePreviewResponse;
 import com.efus.backend.domain.charge.service.ChargeService;
 import com.efus.backend.global.response.ApiResponse;
@@ -16,6 +18,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -49,5 +52,13 @@ public class ChargeController {
             @PathVariable Long chargeId
     ) {
         return ResponseEntity.ok(ApiResponse.success(chargeService.getChargeDetail(chargeId)));
+    }
+
+    @GetMapping("/charges/{chargeId}/members")
+    public ResponseEntity<ApiResponse<ChargeMemberListResponse>> getChargeMembers(
+            @PathVariable Long chargeId,
+            @Valid @ModelAttribute ChargeMemberListRequest request
+    ) {
+        return ResponseEntity.ok(ApiResponse.success(chargeService.getChargeMembers(chargeId, request)));
     }
 }
