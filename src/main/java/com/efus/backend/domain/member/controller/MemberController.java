@@ -2,6 +2,7 @@ package com.efus.backend.domain.member.controller;
 
 import com.efus.backend.domain.member.dto.request.TermMemberListRequest;
 import com.efus.backend.domain.member.dto.response.TermMemberListResponse;
+import com.efus.backend.domain.member.dto.response.TermMemberDetailResponse;
 import com.efus.backend.domain.member.service.MemberQueryService;
 import com.efus.backend.global.response.ApiResponse;
 import jakarta.validation.Valid;
@@ -26,6 +27,17 @@ public class MemberController {
             @Valid @ModelAttribute TermMemberListRequest request
     ) {
         TermMemberListResponse response = memberQueryService.getTermMembers(termId, request);
+
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+    @GetMapping("/{termMemberId}")
+    public ResponseEntity<ApiResponse<TermMemberDetailResponse>> getTermMemberDetail(
+            @PathVariable Long termId,
+            @PathVariable Long termMemberId
+    ) {
+        TermMemberDetailResponse response = memberQueryService
+                .getTermMemberDetail(termId, termMemberId);
 
         return ResponseEntity.ok(ApiResponse.success(response));
     }
