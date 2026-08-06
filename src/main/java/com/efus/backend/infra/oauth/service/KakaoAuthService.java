@@ -61,6 +61,8 @@ public class KakaoAuthService {
             throw new CustomException(ErrorCode.REFRESH_TOKEN_REQUIRED);
         }
 
+        jwtTokenProvider.validateRefreshToken(refreshTokenValue);
+
         Long userId = jwtTokenProvider.getUserIdFromToken(refreshTokenValue);
         refreshTokenRepository.deleteByUserId(userId);
     }
