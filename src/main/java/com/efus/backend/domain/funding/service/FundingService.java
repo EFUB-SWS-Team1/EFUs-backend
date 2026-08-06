@@ -2,6 +2,7 @@ package com.efus.backend.domain.funding.service;
 
 import com.efus.backend.domain.funding.dto.request.FundingCreateRequest;
 import com.efus.backend.domain.funding.dto.response.FundingDetailResponse;
+import com.efus.backend.domain.funding.dto.response.FundingListResponse;
 import com.efus.backend.domain.funding.dto.response.FundingResponse;
 import com.efus.backend.domain.funding.entity.Funding;
 import com.efus.backend.domain.funding.repository.FundingRepository;
@@ -74,6 +75,12 @@ public class FundingService {
                          .toList();
 
         return FundingDetailResponse.of(funding, spentAmount, transactions);
+    }
+
+    // [행사 목록 조회]
+    @Transactional(readOnly = true)
+    public FundingListResponse getFundingList(Long termId, int page, int size) {
+
     }
 
     private void validateCreateRequest(FundingCreateRequest request) {
