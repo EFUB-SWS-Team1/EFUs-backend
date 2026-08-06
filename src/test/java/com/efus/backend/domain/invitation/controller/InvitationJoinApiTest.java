@@ -182,7 +182,7 @@ class InvitationJoinApiTest {
         mockMvc.perform(post("/api/invitations/join")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"code\":\"EFUS-M-111111\"}"))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
