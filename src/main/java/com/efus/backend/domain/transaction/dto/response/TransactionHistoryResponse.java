@@ -19,8 +19,8 @@ public record TransactionHistoryResponse(
     return new TransactionHistoryResponse(
             history.getId(),
             history.getTransaction().getId(),
-            null, // TODO: member 연관관계 병합 후 actorTermMemberId 연결
-            null, // TODO: member/user 연관관계 병합 후 actorName 연결
+            history.getActorTermMember().getId(),
+            history.getActorTermMember().getUser().getName(),
             history.getActionType(),
             history.getSummary(),
             history.getBeforeData(),

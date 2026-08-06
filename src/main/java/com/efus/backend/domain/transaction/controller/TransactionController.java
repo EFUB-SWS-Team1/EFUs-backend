@@ -1,4 +1,3 @@
-//TODO: funding,term 연관관계 + FundingQueryService,MemberQueryService,TermQueryService 병합 후 주석 해제
 package com.efus.backend.domain.transaction.controller;
 
 import com.efus.backend.domain.transaction.dto.request.TransactionCreateRequest;
@@ -48,25 +47,24 @@ public class TransactionController {
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
-    // TODO: funding연관관계 + FundingQueryService,MemberQueryService 병합 후 주석 해제
-//    @PatchMapping("/{transactionId}")
-//    public ResponseEntity<ApiResponse<TransactionResponse>> updateTransaction(
-//            @PathVariable Long termId,
-//            @PathVariable Long transactionId,
-//            @Valid @RequestBody TransactionUpdateRequest request
-//    ) {
-//        TransactionResponse response = transactionService.updateTransaction(termId, transactionId, request);
-//
-//        return ResponseEntity.ok(ApiResponse.success(response, "거래가 수정되었습니다."));
-//    }
-//    @DeleteMapping("/{transactionId}")
-//    public ResponseEntity<Void> deleteTransaction(
-//            @PathVariable Long termId,
-//            @PathVariable Long transactionId
-//    ) {
-//        transactionService.deleteTransaction(termId, transactionId);
-//
-//        return ResponseEntity.noContent().build();
-//    }
+    @PatchMapping("/{transactionId}")
+    public ResponseEntity<ApiResponse<TransactionResponse>> updateTransaction(
+            @PathVariable Long termId,
+            @PathVariable Long transactionId,
+            @Valid @RequestBody TransactionUpdateRequest request
+    ) {
+        TransactionResponse response = transactionService.updateTransaction(termId, transactionId, request);
+
+        return ResponseEntity.ok(ApiResponse.success(response, "거래가 수정되었습니다."));
+    }
+    @DeleteMapping("/{transactionId}")
+    public ResponseEntity<Void> deleteTransaction(
+            @PathVariable Long termId,
+            @PathVariable Long transactionId
+    ) {
+        transactionService.deleteTransaction(termId, transactionId);
+
+        return ResponseEntity.noContent().build();
+    }
 }
 

@@ -79,20 +79,16 @@ public record FundingDetailResponse(
     }
 
     public record CreatedByResponse(
-            Long termMemberId
-            // TODO: Member 도메인 병합 후 주석 해제
-            // String name,
-            // String profileImageUrl
+            Long termMemberId,
+            String name,
+            String profileImageUrl
     ) {
 
         public static CreatedByResponse from(Funding funding) {
             return new CreatedByResponse(
-                    funding.getCreatedByTermMember() == null
-                            ? null
-                            : funding.getCreatedByTermMember().getId()
-                    // TODO: Member 도메인 병합 후 주석 해제
-                    // funding.getCreatedByTermMember().getUser().getName(),
-                    // funding.getCreatedByTermMember().getUser().getProfileImageUrl()
+                    funding.getCreatedByTermMember().getId(),
+                    funding.getCreatedByTermMember().getUser().getName(),
+                    funding.getCreatedByTermMember().getUser().getProfileImageUrl()
             );
         }
     }

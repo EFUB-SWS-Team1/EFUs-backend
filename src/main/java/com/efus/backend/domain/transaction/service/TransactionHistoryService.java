@@ -1,5 +1,6 @@
 package com.efus.backend.domain.transaction.service;
 
+import com.efus.backend.domain.member.service.MemberQueryService;
 import com.efus.backend.domain.transaction.dto.response.TransactionHistoryListResponse;
 import com.efus.backend.domain.transaction.dto.response.TransactionHistoryResponse;
 import com.efus.backend.domain.transaction.entity.Transaction;
@@ -22,10 +23,9 @@ public class TransactionHistoryService {
     private static final int DEFAULT_SIZE = 20;
     private final TransactionHistoryRepository transactionHistoryRepository;
 
-     private final TransactionQueryService transactionQueryService;
+    private final TransactionQueryService transactionQueryService;
 
-    // TODO: member QueryService 병합 후 주석 해제
-    // private final MemberQueryService memberQueryService;
+    private final MemberQueryService memberQueryService;
 
     public TransactionHistoryListResponse getTransactionHistories(
             Long transactionId,
@@ -37,10 +37,9 @@ public class TransactionHistoryService {
 
         validatePageRequest(pageNumber, pageSize);
 
-         Transaction transaction = transactionQueryService.getTransaction(transactionId);
-         Long termId = transaction.getTerm().getId();
-        // TODO: member QueryService 병합 후 주석 해제 (조회 API이므로 STAFF/ACTIVE 검증은 하지 않고, 해당 기수 구성원 여부만 검증)
-        // memberQueryService.validateTermMember(termId);
+        Transaction transaction = transactionQueryService.getTransaction(transactionId);
+        Long termId = transaction.getTerm().getId();
+        memberQueryService.validateTermMember(termId);
 
         Pageable pageable = PageRequest.of(pageNumber, pageSize);
 
