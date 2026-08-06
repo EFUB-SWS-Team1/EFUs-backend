@@ -1,5 +1,7 @@
 package com.efus.backend.domain.ledger.dto.response;
 
+import com.efus.backend.domain.charge.dto.internal.LedgerChargeDto;
+import com.efus.backend.domain.charge.entity.ChargePaymentStatus;
 import com.efus.backend.domain.ledger.entity.LedgerEntryType;
 import com.efus.backend.domain.receipt.entity.Receipt;
 import com.efus.backend.domain.transaction.entity.Transaction;
@@ -20,7 +22,12 @@ public record LedgerEntryResponse(
         boolean deleted,
         boolean hasReceipt,
         Long receiptId,
+        Long requestedAmount,
+        Long paidAmount,
+        Long unpaidAmount,
+        ChargePaymentStatus paymentStatus,
         LocalDateTime createdAt
+
 ) {
 
     public static LedgerEntryResponse fromTransaction(
@@ -36,34 +43,43 @@ public record LedgerEntryResponse(
                 transaction.getTitle(),
                 transaction.getTransactionType(),
                 transaction.getAmount(),
-                // TODO: Transaction-Funding 연관관계 병합 후 fundingId 응답 연결
-                // transaction.getFunding() == null ? null : transaction.getFunding().getId(),
-                null,
-                // TODO: Transaction-Funding 연관관계 병합 후 fundingName 응답 연결
-                // transaction.getFunding() == null ? null : transaction.getFunding().getName(),
-                null,
+                transaction.getFunding() == null ? null : transaction.getFunding().getId(),
+                transaction.getFunding() == null ? null : transaction.getFunding().getName(),
                 transaction.isDeleted(),
                 receipt != null,
                 receipt == null ? null : receipt.getId(),
+                // Charge 전용 필드
+                null,
+                null,
+                null,
+                null,
+                
                 transaction.getCreatedAt()
+                
         );
     }
 
-    // TODO: Charge 도메인 병합 후 주석 해제
-    // public static LedgerEntryResponse fromCharge(Charge charge) {
-    //     return new LedgerEntryResponse(
-    //             charge.getId(),
-    //             LedgerEntryType.CHARGE,
-    //             charge.getDueDate(),
-    //             charge.getTitle(),
-    //             TransactionType.INCOME,
-    //             charge.getAmount(),
-    //             null,
-    //             null,
-    //             charge.isDeleted(),
-    //             false,
-    //             null,
-    //             charge.getCreatedAt()
-    //     );
-    // }
+     public static LedgerEntryResponse fromCharge(LedgerChargeDto charge) {
+         return new LedgerEntryResponse(
+                 charge.chargeId(),
+                 LedgerEntryType.CHARGE,
+                 charge.dueDate(),
+                 charge.title(),
+                 TransactionType.INCOME,
+                 charge.requestedAmount(),
+                 charge.fundingId(),
+                 charge.fundingName(),
+                 charge.deleted(),
+                 false,
+                 null,
+                 
+                 // Charge 전용 필드 
+                 charge.requestedAmount(),
+                 charge.paidAmount(),
+                 charge.unpaidAmount(),
+                 charge.paymentStatus(),
+                 
+                 charge.createdAt()
+         );
+     }
 }

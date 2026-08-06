@@ -1,5 +1,6 @@
 package com.efus.backend.domain.receipt.service;
 
+import com.efus.backend.domain.member.service.MemberQueryService;
 import com.efus.backend.domain.receipt.dto.response.ReceiptResponse;
 import com.efus.backend.domain.receipt.entity.Receipt;
 import com.efus.backend.domain.receipt.repository.ReceiptRepository;
@@ -28,8 +29,7 @@ public class ReceiptService {
     private final S3Service s3Service;
     private final ReceiptOcrService receiptOcrService;
 
-    // TODO: MemberQueryService 병합 후 주석 해제
-    // private final MemberQueryService memberQueryService;
+     private final MemberQueryService memberQueryService;
 
     private final TermQueryService termQueryService;
 
@@ -38,8 +38,7 @@ public class ReceiptService {
 
         Long termId = transaction.getTerm().getId();
 
-        // TODO: MemberQueryService 병합 후 주석 해제
-        // memberQueryService.validateTermMember(termId);
+        memberQueryService.validateTermMember(termId);
 
         Receipt receipt = receiptRepository.findByTransaction_Id(transactionId)
                 .orElseThrow(() -> new CustomException(ErrorCode.RECEIPT_NOT_FOUND));
@@ -57,11 +56,10 @@ public class ReceiptService {
 
         Long termId = transaction.getTerm().getId();
 
-        // TODO: MemberQueryService 병합 후 주석 해제
-        // TermMember currentTermMember = memberQueryService.getCurrentTermMember(termId);
-        // memberQueryService.validateStaff(termId);
+        TermMember currentTermMember = memberQueryService.getCurrentTermMember(termId);
+        memberQueryService.validateStaff(termId);
 
-         termQueryService.validateActiveTerm(termId);
+        termQueryService.validateActiveTerm(termId);
 
         if (transaction.isDeleted()) {
             throw new CustomException(ErrorCode.TRANSACTION_ALREADY_DELETED);
@@ -75,33 +73,33 @@ public class ReceiptService {
                 request.fileSize()
         );
 
-        // TODO: MemberQueryService 병합 후 주석 해제
-//        Receipt receipt = receiptRepository.findByTransaction_Id(transactionId)
-//                .map(existingReceipt -> {
-//                    existingReceipt.replaceFile(
-//                            currentTermMember,
-//                            s3Response.storageKey(),
-//                            s3Response.presignedUrl(),
-//                            s3Response.originalFilename(),
-//                            s3Response.contentType(),
-//                            s3Response.fileSize()
-//                    );
-//                    return existingReceipt;
-//                })
-//                .orElseGet(() -> receiptRepository.save(
-//                        Receipt.builder()
-//                                .transaction(transaction)
-//                                .uploadedByTermMember(currentTermMember)
-//                                .storageKey(s3Response.storageKey())
-//                                .presignedUrl(s3Response.presignedUrl())
-//                                .originalFilename(s3Response.originalFilename())
-//                                .contentType(s3Response.contentType())
-//                                .fileSize(s3Response.fileSize())
-//                                .build()
-//                ));
+        Receipt receipt = receiptRepository.findByTransaction_Id(transactionId)
+                //replace
+                .map(existingReceipt -> {
+                    existingReceipt.replaceFile(
+                            currentTermMember,
+                            s3Response.storageKey(),
+                            s3Response.presignedUrl(),
+                            s3Response.originalFilename(),
+                            s3Response.contentType(),
+                            s3Response.fileSize()
+                    );
+                    return existingReceipt;
+                })
+                //create
+                .orElseGet(() -> receiptRepository.save(
+                        Receipt.builder()
+                                .transaction(transaction)
+                                .uploadedByTermMember(currentTermMember)
+                                .storageKey(s3Response.storageKey())
+                                .presignedUrl(s3Response.presignedUrl())
+                                .originalFilename(s3Response.originalFilename())
+                                .contentType(s3Response.contentType())
+                                .fileSize(s3Response.fileSize())
+                                .build()
+                ));
 
-//        return ReceiptResponse.from(receipt, s3Response.presignedUrl());
-        return null;
+        return ReceiptResponse.from(receipt, s3Response.presignedUrl());
     }
 
     @Transactional
@@ -110,8 +108,7 @@ public class ReceiptService {
 
         Long termId = transaction.getTerm().getId();
 
-        // TODO: MemberQueryService 병합 후 주석 해제
-        // memberQueryService.validateStaff(termId);
+        memberQueryService.validateStaff(termId);
 
         termQueryService.validateActiveTerm(termId);
 
@@ -143,8 +140,7 @@ public class ReceiptService {
 
         Long termId = transaction.getTerm().getId();
 
-        // TODO: MemberQueryService 병합 후 주석 해제
-        // memberQueryService.validateStaff(termId);
+        memberQueryService.validateStaff(termId);
 
         termQueryService.validateActiveTerm(termId);
 

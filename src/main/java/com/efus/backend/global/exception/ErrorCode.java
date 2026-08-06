@@ -92,6 +92,9 @@ public enum ErrorCode {
     RECEIPT_OCR_FAILED(500, "Internal Server Error", "RECEIPT_OCR_FAILED", "영수증 OCR 금액 인식에 실패했습니다."),
 
     // Funding 관련
+    INVALID_TERM_ID(400, "Bad Request", "INVALID_TERM_ID", "기수 ID 형식이 올바르지 않습니다."),
+    INVALID_PAGE_PARAMETER(400, "Bad Request" ,"INVALID_PAGE_PARAMETER", "page가 음수이거나 size가 올바르지 않습니다."),
+
     FUNDING_NOT_FOUND(404, "Not Found", "FUNDING_NOT_FOUND", "행사를 찾을 수 없습니다."),
     FUNDING_ACCESS_DENIED(403, "Forbidden", "FUNDING_ACCESS_DENIED", "행사에 접근할 권한이 없습니다."),
     STAFF_REQUIRED(403, "Forbidden", "STAFF_REQUIRED", "스태프만 요청할 수 있습니다."),

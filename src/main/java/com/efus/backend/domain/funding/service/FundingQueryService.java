@@ -15,6 +15,11 @@ public class FundingQueryService {
 
     private final FundingRepository fundingRepository;
 
+    public Funding getFunding(Long fundingId) {
+        return fundingRepository.findById(fundingId)
+                .orElseThrow(() -> new CustomException(ErrorCode.FUNDING_NOT_FOUND));
+    }
+
     public Funding getFundingInTerm(Long termId, Long fundingId) {
         return fundingRepository.findByIdAndOrganizationTerm_Id(fundingId, termId)
                 .orElseThrow(() -> new CustomException(ErrorCode.FUNDING_NOT_FOUND));

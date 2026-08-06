@@ -53,4 +53,28 @@ public class Funding extends BaseEntity {
         this.startDate = startDate;
         this.endDate = endDate;
     }
+
+    public void update(
+            String name,
+            Long budgetAmount,
+            Integer participantCount,
+            LocalDate startDate,
+            LocalDate endDate
+    ) {
+        if (name != null) {
+            this.name = name;
+        }
+        if (budgetAmount != null) {
+            this.budgetAmount = budgetAmount;
+        }
+        if (participantCount != null) {
+            this.participantCount = participantCount;
+        }
+        if (startDate != null) {
+            this.startDate = startDate;
+        }
+        if (endDate != null) {
+            this.endDate = endDate;
+        }
+    }
 }
