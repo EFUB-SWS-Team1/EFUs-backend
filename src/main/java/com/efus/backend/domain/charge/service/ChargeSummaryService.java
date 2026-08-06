@@ -44,4 +44,10 @@ public class ChargeSummaryService {
         return chargeRepository.findLedgerCharges(
                 termId, fromDate, toDate, includeDeleted, fundingId);
     }
+
+    public Long calculatePaidAmount(Long termId) {
+        return getLedgerCharges(termId, null, null, false, null).stream()
+                .mapToLong(LedgerChargeDto::paidAmount)
+                .sum();
+    }
 }
