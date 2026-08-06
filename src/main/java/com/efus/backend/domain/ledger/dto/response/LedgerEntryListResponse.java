@@ -25,8 +25,8 @@ public record LedgerEntryListResponse(
                 totalIncome,
                 totalExpense,
                 totalIncome - totalExpense,
-                entries,gi
-                Pagit add .geInfo.of(page, size, totalElements)
+                entries,
+                PageInfo.of(page, size, totalElements)
         );
     }
 
@@ -38,8 +38,15 @@ public record LedgerEntryListResponse(
             boolean hasNext
     ) {
 
-        public static PageInfo of(int page, int size, long totalElements) {
-            int totalPages = size == 0 ? 0 : (int) Math.ceil((double) totalElements / size);
+        public static PageInfo of(
+                int page,
+                int size,
+                long totalElements
+        ) {
+            int totalPages = size == 0
+                    ? 0
+                    : (int) Math.ceil((double) totalElements / size);
+
             boolean hasNext = page + 1 < totalPages;
 
             return new PageInfo(
