@@ -39,3 +39,6 @@ cloud:
       access-key: ${EFUS_AWS_ACCESS_KEY}
       secret-key: ${EFUS_AWS_SECRET_KEY}
 
+ocr:
+  paddle:
+    base-url: ${PADDLE_OCR_BASE_URL:http://localhost:8001}
