@@ -4,6 +4,7 @@ import com.efus.backend.domain.funding.dto.request.FundingCreateRequest;
 import com.efus.backend.domain.funding.dto.response.FundingDetailResponse;
 import com.efus.backend.domain.funding.dto.response.FundingListResponse;
 import com.efus.backend.domain.funding.dto.response.FundingResponse;
+import com.efus.backend.domain.funding.dto.response.FundingSummaryResponse;
 import com.efus.backend.domain.funding.entity.Funding;
 import com.efus.backend.domain.funding.repository.FundingRepository;
 import com.efus.backend.domain.term.entity.OrganizationTerm;
@@ -123,6 +124,28 @@ public class FundingService {
                 (long) fundingPage.getTotalPages(),
                 fundingPage.isFirst(),
                 fundingPage.isLast()
+        );
+    }
+
+    // [행사 예산 요약 조회]
+    @Transactional(readOnly = true)
+    public FundingSummaryResponse getFundingSummary(Long termId) {
+        termQueryService.getTerm(termId);
+        memberQueryService.validateTermMember(termId);
+
+        // 총 예산, 행사 개수, 총 지출액
+        Long totalBudgetAmount = fundingRepository.sumBudgetAmountByTermId(termId);
+        Long fundingCount = fundingRepository.countByOrganizationTerm_Id(termId);
+        Long totalSpentAmount = transactionRepository.sumAmountByTermIdAndTransactionType(
+                termId,
+                TransactionType.EXPENSE
+        );
+
+        return FundingSummaryResponse.of(
+                termId,
+                totalBudgetAmount,
+                totalSpentAmount,
+                fundingCount
         );
     }
 
