@@ -3,6 +3,8 @@ package com.efus.backend.domain.ledger.service;
 import com.efus.backend.domain.ledger.dto.response.LedgerEntryListResponse;
 import com.efus.backend.domain.ledger.dto.response.LedgerEntryResponse;
 import com.efus.backend.domain.ledger.entity.LedgerFlowType;
+import com.efus.backend.domain.charge.dto.internal.LedgerChargeDto;
+import com.efus.backend.domain.charge.service.ChargeSummaryService;
 import com.efus.backend.domain.member.service.MemberQueryService;
 import com.efus.backend.domain.receipt.entity.Receipt;
 import com.efus.backend.domain.receipt.service.ReceiptQueryService;
@@ -15,10 +17,13 @@ import com.efus.backend.global.exception.ErrorCode;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
+import java.util.ArrayList;
+import java.util.Comparator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,11 +38,8 @@ public class LedgerService {
     private final TransactionRepository transactionRepository;
     private final ReceiptQueryService receiptQueryService;
     private final TermQueryService termQueryService;
-
-     private final MemberQueryService memberQueryService;
-
-    // TODO: Charge 도메인 병합 후 주석 해제
-//     private final ChargeQueryService chargeQueryService;
+    private final MemberQueryService memberQueryService;
+    private final ChargeSummaryService chargeSummaryService;
 
     public LedgerEntryListResponse getLedgerEntries(
             Long termId,
@@ -55,14 +57,7 @@ public class LedgerService {
 
         validateDateRange(fromDate, toDate);
 
-        PageRequest pageRequest = PageRequest.of(
-                Math.max(page, 0),
-                normalizeSize(size),
-                Sort.by(
-                        Sort.Order.desc("transactionDate"),
-                        Sort.Order.desc("id")
-                )
-        );
+        PageRequest pageRequest = PageRequest.of(Math.max(page, 0), normalizeSize(size));
 
         TransactionType transactionType = resolveTransactionType(type);
 
@@ -73,7 +68,7 @@ public class LedgerService {
                 transactionType,
                 includeDeleted,
                 fundingId,
-                pageRequest
+                Pageable.unpaged()
         );
 
         List<Long> transactionIds = transactionPage.getContent()
@@ -83,24 +78,29 @@ public class LedgerService {
 
         Map<Long, Receipt> receiptMap = receiptQueryService.getReceiptMapByTransactionIds(transactionIds);
 
-        List<LedgerEntryResponse> entries = transactionPage.getContent()
+        List<LedgerEntryResponse> transactionEntries = transactionPage.getContent()
                 .stream()
                 .map(transaction -> LedgerEntryResponse.fromTransaction(transaction, receiptMap))
                 .toList();
 
-        // TODO: Charge 도메인 병합 후 주석 해제
-        //  type이 ALL 또는 INCOME인 경우 회비 청구도 목록에 포함해야 합니다.
-        //  CHARGE 날짜 필터 기준은 dueDate입니다.
-//         List<LedgerEntryResponse> chargeEntries = chargeQueryService.getLedgerCharges(
-//                 termId,
-//                 fromDate,
-//                 toDate,
-//                 includeDeleted,
-//                 fundingId,
-//                 pageRequest
-//         ).stream()
-//                 .map(LedgerEntryResponse::fromCharge)
-//                 .toList();
+        List<LedgerChargeDto> charges = chargeSummaryService.getLedgerCharges(
+                termId, fromDate, toDate, includeDeleted, fundingId);
+
+        List<LedgerEntryResponse> mergedEntries = new ArrayList<>(transactionEntries);
+        if (type != LedgerFlowType.EXPENSE) {
+            mergedEntries.addAll(charges.stream().map(LedgerEntryResponse::fromCharge).toList());
+        }
+        mergedEntries.sort(Comparator
+                .comparing(LedgerEntryResponse::date, Comparator.reverseOrder())
+                .thenComparing(LedgerEntryResponse::createdAt,
+                        Comparator.nullsLast(Comparator.reverseOrder()))
+                .thenComparing(LedgerEntryResponse::entryId, Comparator.reverseOrder()));
+
+        int fromIndex = Math.min((int) pageRequest.getOffset(), mergedEntries.size());
+        int toIndex = Math.min(fromIndex + pageRequest.getPageSize(), mergedEntries.size());
+        List<LedgerEntryResponse> entries = mergedEntries.subList(fromIndex, toIndex);
+        Page<LedgerEntryResponse> mergedPage = new PageImpl<>(
+                entries, pageRequest, mergedEntries.size());
 
         Long totalIncome = transactionRepository.sumLedgerTransactionAmount(
                 termId,
@@ -120,16 +120,14 @@ public class LedgerService {
                 fundingId
         );
 
-        // TODO: Charge 도메인 병합 후 실제 납부 완료된 회비 금액을 totalIncome에 더해야 합니다.
-        //  문서 기준: 회비 청구는 목록에서는 INCOME 성격이지만, 실제 총수입에는 납부된 금액만 반영합니다.
-//         totalIncome += chargeQueryService.sumPaidChargeAmount(termId, fromDate, toDate, includeDeleted,fundingId);
+        totalIncome += charges.stream().mapToLong(LedgerChargeDto::paidAmount).sum();
 
         return LedgerEntryListResponse.of(
                 termId,
                 totalIncome,
                 totalExpense,
                 entries,
-                transactionPage
+                mergedPage
         );
     }
 

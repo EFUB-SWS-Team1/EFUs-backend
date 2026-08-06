@@ -1,6 +1,7 @@
 package com.efus.backend.domain.ledger.dto.response;
 
-import com.efus.backend.domain.charge.entity.Charge;
+import com.efus.backend.domain.charge.dto.internal.LedgerChargeDto;
+import com.efus.backend.domain.charge.entity.ChargePaymentStatus;
 import com.efus.backend.domain.ledger.entity.LedgerEntryType;
 import com.efus.backend.domain.receipt.entity.Receipt;
 import com.efus.backend.domain.transaction.entity.Transaction;
@@ -21,7 +22,11 @@ public record LedgerEntryResponse(
         boolean deleted,
         boolean hasReceipt,
         Long receiptId,
-        LocalDateTime createdAt
+        LocalDateTime createdAt,
+        Long requestedAmount,
+        Long paidAmount,
+        Long unpaidAmount,
+        ChargePaymentStatus paymentStatus
 ) {
 
     public static LedgerEntryResponse fromTransaction(
@@ -42,24 +47,32 @@ public record LedgerEntryResponse(
                 transaction.isDeleted(),
                 receipt != null,
                 receipt == null ? null : receipt.getId(),
-                transaction.getCreatedAt()
+                transaction.getCreatedAt(),
+                null,
+                null,
+                null,
+                null
         );
     }
 
-     public static LedgerEntryResponse fromCharge(Charge charge) {
+     public static LedgerEntryResponse fromCharge(LedgerChargeDto charge) {
          return new LedgerEntryResponse(
-                 charge.getId(),
+                 charge.chargeId(),
                  LedgerEntryType.CHARGE,
-                 charge.getDueDate(),
-                 charge.getTitle(),
+                 charge.dueDate(),
+                 charge.title(),
                  TransactionType.INCOME,
-                 charge.getRequestedAmount(),
-                 null,
-                 null,
-                 charge.isDeleted(),
+                 charge.requestedAmount(),
+                 charge.fundingId(),
+                 charge.fundingName(),
+                 charge.deleted(),
                  false,
                  null,
-                 charge.getCreatedAt()
+                 charge.createdAt(),
+                 charge.requestedAmount(),
+                 charge.paidAmount(),
+                 charge.unpaidAmount(),
+                 charge.paymentStatus()
          );
      }
 }
