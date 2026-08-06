@@ -17,7 +17,8 @@ EFUB SWS 1팀 EFUs 프로젝트입니다.
 
 # 🗺️ ERD
 
-<img width="1900" alt="EFUs ERD" src="https://github.com/user-attachments/assets/e66acfa9-e844-4c12-addc-7c56f43e1c82" />
+<img width="2030" height="1252" alt="EFUs project ERD" src="https://github.com/user-attachments/assets/b49f7737-494b-4dd3-b381-b5e951bafb31" />
+
 
 </br>
 
