@@ -2,21 +2,29 @@ package com.efus.backend.domain.funding.service;
 
 import com.efus.backend.domain.funding.dto.request.FundingCreateRequest;
 import com.efus.backend.domain.funding.dto.response.FundingDetailResponse;
+import com.efus.backend.domain.funding.dto.response.FundingListResponse;
 import com.efus.backend.domain.funding.dto.response.FundingResponse;
 import com.efus.backend.domain.funding.entity.Funding;
 import com.efus.backend.domain.funding.repository.FundingRepository;
 import com.efus.backend.domain.term.entity.OrganizationTerm;
 import com.efus.backend.domain.term.service.TermQueryService;
- import com.efus.backend.domain.member.entity.TermMember;
- import com.efus.backend.domain.member.service.MemberQueryService;
+import com.efus.backend.domain.member.entity.TermMember;
+import com.efus.backend.domain.member.service.MemberQueryService;
 import com.efus.backend.domain.transaction.entity.TransactionType;
+import com.efus.backend.domain.user.entity.User;
+import com.efus.backend.domain.user.service.CurrentUserService;
 import com.efus.backend.global.exception.CustomException;
 import com.efus.backend.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
- import com.efus.backend.domain.transaction.repository.TransactionRepository;
+import com.efus.backend.domain.transaction.repository.TransactionRepository;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
 
 @Service
@@ -29,6 +37,8 @@ public class FundingService {
     private final FundingQueryService fundingQueryService;
     private final MemberQueryService memberQueryService;
     private final TransactionRepository transactionRepository;
+    private final CurrentUserService currentUserService;
+
 
     public FundingResponse createFunding(Long termId, FundingCreateRequest request) {
         OrganizationTerm term = termQueryService.getTerm(termId);
@@ -60,20 +70,60 @@ public class FundingService {
     public FundingDetailResponse getFundingDetail(Long termId, Long fundingId) {
         Funding funding = fundingQueryService.getFundingInTerm(termId, fundingId);
 
-         memberQueryService.validateTermMember(termId);
+        memberQueryService.validateTermMember(termId);
 
-         Long spentAmount = transactionRepository.sumAmountByFundingIdAndTransactionType(
-                 fundingId,
-                 TransactionType.EXPENSE
-         );
+        Long spentAmount = transactionRepository.sumAmountByFundingIdAndTransactionType(
+                fundingId,
+                TransactionType.EXPENSE
+        );
 
-         List<FundingDetailResponse.FundingTransactionResponse> transactions =
-                 transactionRepository.findAllByFunding_IdAndDeletedFalseOrderByTransactionDateDesc(fundingId)
-                         .stream()
-                         .map(FundingDetailResponse.FundingTransactionResponse::from)
-                         .toList();
+        List<FundingDetailResponse.FundingTransactionResponse> transactions =
+                transactionRepository.findAllByFunding_IdAndDeletedFalseOrderByTransactionDateDesc(fundingId)
+                        .stream()
+                        .map(FundingDetailResponse.FundingTransactionResponse::from)
+                        .toList();
 
         return FundingDetailResponse.of(funding, spentAmount, transactions);
+    }
+
+    // [행사 목록 조회]
+    @Transactional(readOnly = true)
+    public FundingListResponse getFundingList(Long termId, int page, int size) {
+        if (page < 0 || size <= 0) {
+            throw new CustomException(ErrorCode.INVALID_PAGE_PARAMETER);
+        }
+        Pageable pageable = PageRequest.of(page, size);
+
+        // 권한 검증
+        termQueryService.getTerm(termId);
+        memberQueryService.validateTermMember(termId);
+
+        // 행사 목록 페이징 조회
+        Page<Funding> fundingPage = fundingRepository.findByOrganizationTerm_Id(termId, pageable);
+
+        // 서버의 현재 날짜 세팅
+        LocalDate currentDate = LocalDate.now(ZoneId.of("Asia/Seoul"));
+
+        // 데이터 변환 및 지출액 합산
+        List<FundingListResponse.FundingDetailDto> fundingDtos = fundingPage.stream()
+                .map(funding -> {
+                    Long spentAmount = transactionRepository.sumAmountByFundingIdAndTransactionType(
+                            funding.getId(),
+                            TransactionType.EXPENSE
+                    );
+                    return FundingListResponse.FundingDetailDto.of(funding, spentAmount, currentDate);
+                })
+                .toList();
+
+        return new FundingListResponse(
+                fundingDtos,
+                (long) fundingPage.getNumber(),
+                (long) fundingPage.getSize(),
+                fundingPage.getTotalElements(),
+                (long) fundingPage.getTotalPages(),
+                fundingPage.isFirst(),
+                fundingPage.isLast()
+        );
     }
 
     private void validateCreateRequest(FundingCreateRequest request) {
