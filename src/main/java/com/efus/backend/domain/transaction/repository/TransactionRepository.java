@@ -85,4 +85,24 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
             @Param("fundingId") Long fundingId
             );
 
+    @Query("""
+        select t
+        from Transaction t
+        where t.term.id = :termId
+          and (:includeDeleted = true or t.deleted = false)
+          and (:fromDate is null or t.transactionDate >= :fromDate)
+          and (:toDate is null or t.transactionDate <= :toDate)
+          and (:transactionType is null or t.transactionType = :transactionType)
+          and (:fundingId is null or t.funding.id = :fundingId)
+        order by t.transactionDate desc, t.createdAt desc, t.id desc
+        """)
+    List<Transaction> findLedgerTransactionsForEntries(
+            @Param("termId") Long termId,
+            @Param("fromDate") LocalDate fromDate,
+            @Param("toDate") LocalDate toDate,
+            @Param("transactionType") TransactionType transactionType,
+            @Param("includeDeleted") boolean includeDeleted,
+            @Param("fundingId") Long fundingId
+    );
+
 }
