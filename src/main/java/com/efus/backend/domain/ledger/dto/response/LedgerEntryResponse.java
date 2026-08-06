@@ -22,11 +22,12 @@ public record LedgerEntryResponse(
         boolean deleted,
         boolean hasReceipt,
         Long receiptId,
-        LocalDateTime createdAt,
         Long requestedAmount,
         Long paidAmount,
         Long unpaidAmount,
-        ChargePaymentStatus paymentStatus
+        ChargePaymentStatus paymentStatus,
+        LocalDateTime createdAt
+
 ) {
 
     public static LedgerEntryResponse fromTransaction(
@@ -47,11 +48,14 @@ public record LedgerEntryResponse(
                 transaction.isDeleted(),
                 receipt != null,
                 receipt == null ? null : receipt.getId(),
-                transaction.getCreatedAt(),
+                // Charge 전용 필드
                 null,
                 null,
                 null,
-                null
+                null,
+                
+                transaction.getCreatedAt()
+                
         );
     }
 
@@ -68,11 +72,14 @@ public record LedgerEntryResponse(
                  charge.deleted(),
                  false,
                  null,
-                 charge.createdAt(),
+                 
+                 // Charge 전용 필드 
                  charge.requestedAmount(),
                  charge.paidAmount(),
                  charge.unpaidAmount(),
-                 charge.paymentStatus()
+                 charge.paymentStatus(),
+                 
+                 charge.createdAt()
          );
      }
 }

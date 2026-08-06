@@ -1,7 +1,6 @@
 package com.efus.backend.domain.ledger.dto.response;
 
 import java.util.List;
-import org.springframework.data.domain.Page;
 
 public record LedgerEntryListResponse(
         Long termId,
@@ -17,15 +16,17 @@ public record LedgerEntryListResponse(
             Long totalIncome,
             Long totalExpense,
             List<LedgerEntryResponse> entries,
-            Page<?> page
+            int page,
+            int size,
+            long totalElements
     ) {
         return new LedgerEntryListResponse(
                 termId,
                 totalIncome,
                 totalExpense,
                 totalIncome - totalExpense,
-                entries,
-                PageInfo.from(page)
+                entries,gi
+                Pagit add .geInfo.of(page, size, totalElements)
         );
     }
 
@@ -37,13 +38,16 @@ public record LedgerEntryListResponse(
             boolean hasNext
     ) {
 
-        public static PageInfo from(Page<?> page) {
+        public static PageInfo of(int page, int size, long totalElements) {
+            int totalPages = size == 0 ? 0 : (int) Math.ceil((double) totalElements / size);
+            boolean hasNext = page + 1 < totalPages;
+
             return new PageInfo(
-                    page.getNumber(),
-                    page.getSize(),
-                    page.getTotalElements(),
-                    page.getTotalPages(),
-                    page.hasNext()
+                    page,
+                    size,
+                    totalElements,
+                    totalPages,
+                    hasNext
             );
         }
     }
