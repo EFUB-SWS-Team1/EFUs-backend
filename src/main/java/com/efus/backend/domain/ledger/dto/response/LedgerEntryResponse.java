@@ -22,10 +22,12 @@ public record LedgerEntryResponse(
         boolean deleted,
         boolean hasReceipt,
         Long receiptId,
+        Long requestedAmount,
         Long paidAmount,
         Long unpaidAmount,
         ChargePaymentStatus paymentStatus,
         LocalDateTime createdAt
+
 ) {
 
     public static LedgerEntryResponse fromTransaction(
@@ -46,30 +48,38 @@ public record LedgerEntryResponse(
                 transaction.isDeleted(),
                 receipt != null,
                 receipt == null ? null : receipt.getId(),
+                // Charge 전용 필드
                 null,
                 null,
                 null,
+                null,
+                
                 transaction.getCreatedAt()
+                
         );
     }
 
-    public static LedgerEntryResponse fromCharge(LedgerChargeDto charge) {
-        return new LedgerEntryResponse(
-                charge.chargeId(),
-                LedgerEntryType.CHARGE,
-                charge.dueDate(),
-                charge.title(),
-                TransactionType.INCOME,
-                charge.requestedAmount(),
-                charge.fundingId(),
-                charge.fundingName(),
-                charge.deleted(),
-                false,
-                null,
-                charge.paidAmount(),
-                charge.unpaidAmount(),
-                charge.paymentStatus(),
-                charge.createdAt()
-        );
-    }
+     public static LedgerEntryResponse fromCharge(LedgerChargeDto charge) {
+         return new LedgerEntryResponse(
+                 charge.chargeId(),
+                 LedgerEntryType.CHARGE,
+                 charge.dueDate(),
+                 charge.title(),
+                 TransactionType.INCOME,
+                 charge.requestedAmount(),
+                 charge.fundingId(),
+                 charge.fundingName(),
+                 charge.deleted(),
+                 false,
+                 null,
+                 
+                 // Charge 전용 필드 
+                 charge.requestedAmount(),
+                 charge.paidAmount(),
+                 charge.unpaidAmount(),
+                 charge.paymentStatus(),
+                 
+                 charge.createdAt()
+         );
+     }
 }

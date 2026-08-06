@@ -1,6 +1,7 @@
 package com.efus.backend.domain.funding.service;
 
 import com.efus.backend.domain.funding.dto.request.FundingCreateRequest;
+import com.efus.backend.domain.funding.dto.request.FundingUpdateRequest;
 import com.efus.backend.domain.funding.dto.response.FundingDetailResponse;
 import com.efus.backend.domain.funding.dto.response.FundingListResponse;
 import com.efus.backend.domain.funding.dto.response.FundingResponse;
@@ -14,6 +15,9 @@ import com.efus.backend.domain.member.service.MemberQueryService;
 import com.efus.backend.domain.transaction.entity.TransactionType;
 import com.efus.backend.domain.user.entity.User;
 import com.efus.backend.domain.user.service.CurrentUserService;
+import com.efus.backend.domain.ledger.dto.response.LedgerEntryListResponse;
+import com.efus.backend.domain.ledger.entity.LedgerFlowType;
+import com.efus.backend.domain.ledger.service.LedgerService;
 import com.efus.backend.global.exception.CustomException;
 import com.efus.backend.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -39,6 +43,7 @@ public class FundingService {
     private final MemberQueryService memberQueryService;
     private final TransactionRepository transactionRepository;
     private final CurrentUserService currentUserService;
+    private final LedgerService ledgerService;
 
 
     public FundingResponse createFunding(Long termId, FundingCreateRequest request) {
@@ -65,6 +70,45 @@ public class FundingService {
         Funding savedFunding = fundingRepository.save(funding);
 
         return FundingResponse.from(savedFunding);
+    }
+
+    public FundingResponse updateFunding(Long fundingId, FundingUpdateRequest request) {
+        Funding funding = fundingQueryService.getFunding(fundingId);
+        Long termId = funding.getOrganizationTerm().getId();
+
+        memberQueryService.validateTermMember(termId);
+        memberQueryService.validateStaff(termId);
+        termQueryService.validateActiveTerm(termId);
+
+        validateUpdateRequest(funding, request);
+        funding.update(
+                request.name(),
+                request.budgetAmount(),
+                request.participantCount(),
+                request.startDate(),
+                request.endDate()
+        );
+
+        return FundingResponse.from(funding);
+    }
+
+    @Transactional(readOnly = true)
+    public LedgerEntryListResponse getLedgerEntries(
+            Long fundingId,
+            LocalDate fromDate,
+            LocalDate toDate,
+            LedgerFlowType type,
+            boolean includeDeleted,
+            int page,
+            int size
+    ) {
+        Funding funding = fundingQueryService.getFunding(fundingId);
+        Long termId = funding.getOrganizationTerm().getId();
+
+        memberQueryService.validateTermMember(termId);
+
+        return ledgerService.getLedgerEntries(
+                termId, fromDate, toDate, type, includeDeleted, fundingId, page, size);
     }
 
     @Transactional(readOnly = true)
@@ -159,6 +203,26 @@ public class FundingService {
         }
 
         if (request.endDate().isBefore(request.startDate())) {
+            throw new CustomException(ErrorCode.INVALID_FUNDING_PERIOD);
+        }
+    }
+
+    private void validateUpdateRequest(Funding funding, FundingUpdateRequest request) {
+        if (request.name() != null && request.name().isBlank()) {
+            throw new CustomException(ErrorCode.INVALID_REQUEST);
+        }
+        if (request.budgetAmount() != null && request.budgetAmount() <= 0) {
+            throw new CustomException(ErrorCode.INVALID_FUNDING_BUDGET);
+        }
+        if (request.participantCount() != null && request.participantCount() <= 0) {
+            throw new CustomException(ErrorCode.INVALID_PARTICIPANT_COUNT);
+        }
+
+        LocalDate finalStartDate = request.startDate() == null
+                ? funding.getStartDate() : request.startDate();
+        LocalDate finalEndDate = request.endDate() == null
+                ? funding.getEndDate() : request.endDate();
+        if (finalEndDate.isBefore(finalStartDate)) {
             throw new CustomException(ErrorCode.INVALID_FUNDING_PERIOD);
         }
     }
