@@ -1,6 +1,13 @@
 package com.efus.backend.domain.term.service;
 
 import com.efus.backend.domain.invitation.service.InvitationCommandService;
+import com.efus.backend.domain.charge.service.ChargeSummaryService;
+import com.efus.backend.domain.funding.service.FundingQueryService;
+import com.efus.backend.domain.ledger.dto.response.LedgerEntryResponse;
+import com.efus.backend.domain.ledger.entity.LedgerFlowType;
+import com.efus.backend.domain.ledger.service.LedgerService;
+import com.efus.backend.domain.member.service.MemberQueryService;
+import com.efus.backend.domain.transaction.service.TransactionSummaryService;
 import com.efus.backend.domain.member.entity.TermMember;
 import com.efus.backend.domain.member.entity.TermMemberRole;
 import com.efus.backend.domain.member.repository.TermMemberRepository;
@@ -9,10 +16,7 @@ import com.efus.backend.domain.organization.repository.OrganizationRepository;
 import com.efus.backend.domain.term.dto.request.TermCloseRequest;
 import com.efus.backend.domain.term.dto.request.TermCreateRequest;
 import com.efus.backend.domain.term.dto.request.TermUpdateRequest;
-import com.efus.backend.domain.term.dto.response.TermCloseResponse;
-import com.efus.backend.domain.term.dto.response.TermCreateResponse;
-import com.efus.backend.domain.term.dto.response.TermListResponse;
-import com.efus.backend.domain.term.dto.response.TermUpdateResponse;
+import com.efus.backend.domain.term.dto.response.*;
 import com.efus.backend.domain.term.entity.OrganizationTerm;
 import com.efus.backend.domain.term.entity.TermStatus;
 import com.efus.backend.domain.term.repository.TermRepository;
@@ -36,6 +40,11 @@ public class TermService {
     private final OrganizationRepository organizationRepository;
     private final InvitationCommandService invitationCommandService;
     private final TermQueryService termQueryService;
+    private final MemberQueryService memberQueryService;
+    private final TransactionSummaryService transactionSummaryService;
+    private final ChargeSummaryService chargeSummaryService;
+    private final LedgerService ledgerService;
+    private final FundingQueryService fundingQueryService;
 
     // [다음 기수 생성]
     @Transactional
@@ -111,6 +120,69 @@ public class TermService {
         return TermCloseResponse.of(term, closer);
     }
 
+    // [대시보드 조회]
+    @Transactional(readOnly = true)
+    public TermDashboardResponse getTermDashboard(Long termId) {
+        if (termId == null || termId <= 0L) {
+            throw new CustomException(ErrorCode.INVALID_TERM_ID);
+        }
+
+        OrganizationTerm term = termQueryService.getTerm(termId);
+        Organization organization = term.getOrganization();
+        TermMember currentTermMember = memberQueryService.getDashboardMember(
+                termId, organization.getId());
+
+        TermDashboardResponse.TermInfoDto termInfo = new TermDashboardResponse.TermInfoDto(
+                term.getId(),
+                organization.getName(),
+                term.getName(),
+                term.getTermStatus().name(),
+                currentTermMember == null ? null : currentTermMember.getRole().name()
+        );
+
+        long totalIncome = transactionSummaryService.calculateIncome(termId)
+                + chargeSummaryService.calculatePaidAmount(termId);
+        long totalExpense = transactionSummaryService.calculateExpense(termId);
+        TermDashboardResponse.FinancialSummaryDto financialSummary =
+                TermDashboardResponse.FinancialSummaryDto.of(totalIncome, totalExpense);
+
+        var ledgerEntries = ledgerService.getLedgerEntries(
+                        termId, null, null, LedgerFlowType.ALL, false, null, 0, 0)
+                .entries().stream()
+                .map(this::toDashboardLedgerEntry)
+                .toList();
+
+        var fundingBudgets = fundingQueryService.getFundingSpendings(termId).stream()
+                .map(summary -> TermDashboardResponse.FundingBudgetDto.of(
+                        summary.funding().getId(),
+                        summary.funding().getName(),
+                        summary.funding().getBudgetAmount(),
+                        summary.spentAmount()))
+                .toList();
+
+        return new TermDashboardResponse(termInfo, financialSummary, ledgerEntries, fundingBudgets);
+    }
+
+    private TermDashboardResponse.RecentLedgerEntryDto toDashboardLedgerEntry(
+            LedgerEntryResponse entry) {
+        return new TermDashboardResponse.RecentLedgerEntryDto(
+                entry.entryType().name(),
+                entry.entryId(),
+                entry.transactionType().name(),
+                entry.date(),
+                entry.fundingId(),
+                entry.fundingName(),
+                entry.title(),
+                entry.entryType() == com.efus.backend.domain.ledger.entity.LedgerEntryType.TRANSACTION
+                        ? entry.amount() : null,
+                entry.requestedAmount(),
+                entry.paidAmount(),
+                entry.unpaidAmount(),
+                entry.paymentStatus() == null ? null : entry.paymentStatus().name(),
+                entry.deleted()
+        );
+    }
+
     private void validateStaffInRecentTerm(Long organizationId, Long userId) {
         // 단체의 가장 최근 종료된 기수 조회
         OrganizationTerm recentTerm = termRepository.findTopByOrganizationIdAndTermStatusOrderByEndDateDesc(organizationId, TermStatus.CLOSED)
@@ -145,4 +217,6 @@ public class TermService {
 
         return currentTermMember;
     }
+
+
 }

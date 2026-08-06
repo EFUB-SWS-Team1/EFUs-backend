@@ -67,6 +67,19 @@ public class MemberQueryService {
         getCurrentTermMember(termId);
     }
 
+    public TermMember getDashboardMember(Long termId, Long organizationId) {
+        User currentUser = currentUserService.getCurrentUser();
+        boolean hasOrganizationHistory = termMemberRepository
+                .existsByTerm_Organization_IdAndUser_Id(organizationId, currentUser.getId());
+
+        if (!hasOrganizationHistory) {
+            throw new CustomException(ErrorCode.TERM_ACCESS_DENIED);
+        }
+
+        return termMemberRepository.findByTermIdAndUserId(termId, currentUser.getId())
+                .orElse(null);
+    }
+
     public void validateStaff(Long termId) {
         TermMember currentTermMember = getCurrentTermMember(termId);
 
