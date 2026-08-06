@@ -9,10 +9,7 @@ import com.efus.backend.domain.organization.repository.OrganizationRepository;
 import com.efus.backend.domain.term.dto.request.TermCloseRequest;
 import com.efus.backend.domain.term.dto.request.TermCreateRequest;
 import com.efus.backend.domain.term.dto.request.TermUpdateRequest;
-import com.efus.backend.domain.term.dto.response.TermCloseResponse;
-import com.efus.backend.domain.term.dto.response.TermCreateResponse;
-import com.efus.backend.domain.term.dto.response.TermListResponse;
-import com.efus.backend.domain.term.dto.response.TermUpdateResponse;
+import com.efus.backend.domain.term.dto.response.*;
 import com.efus.backend.domain.term.entity.OrganizationTerm;
 import com.efus.backend.domain.term.entity.TermStatus;
 import com.efus.backend.domain.term.repository.TermRepository;
@@ -111,6 +108,12 @@ public class TermService {
         return TermCloseResponse.of(term, closer);
     }
 
+    // [대시보드 조회]
+    @Transactional(readOnly = true)
+    public TermDashboardResponse getTermDashboard(Long termId) {
+
+    }
+
     private void validateStaffInRecentTerm(Long organizationId, Long userId) {
         // 단체의 가장 최근 종료된 기수 조회
         OrganizationTerm recentTerm = termRepository.findTopByOrganizationIdAndTermStatusOrderByEndDateDesc(organizationId, TermStatus.CLOSED)
@@ -145,4 +148,6 @@ public class TermService {
 
         return currentTermMember;
     }
+
+
 }

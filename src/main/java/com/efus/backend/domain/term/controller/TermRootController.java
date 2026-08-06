@@ -3,6 +3,7 @@ package com.efus.backend.domain.term.controller;
 import com.efus.backend.domain.term.dto.request.TermCloseRequest;
 import com.efus.backend.domain.term.dto.request.TermUpdateRequest;
 import com.efus.backend.domain.term.dto.response.TermCloseResponse;
+import com.efus.backend.domain.term.dto.response.TermDashboardResponse;
 import com.efus.backend.domain.term.dto.response.TermDetailResponse;
 import com.efus.backend.domain.term.dto.response.TermUpdateResponse;
 import com.efus.backend.domain.term.service.TermQueryService;
@@ -47,6 +48,15 @@ public class TermRootController {
             @Valid @RequestBody TermCloseRequest request) {
 
         TermCloseResponse response = termService.closeTerm(termId, request);
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+    // [대시보드 조회]
+    @GetMapping("/dashboard")
+    public ResponseEntity<ApiResponse<TermDashboardResponse>> getTermDashboard(
+            @PathVariable("termId") Long termId
+    ) {
+        TermDashboardResponse response = termService.getTermDashboard(termId);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 }
