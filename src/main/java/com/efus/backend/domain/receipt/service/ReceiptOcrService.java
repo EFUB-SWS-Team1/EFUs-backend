@@ -5,4 +5,6 @@ package com.efus.backend.domain.receipt.service;
 public interface ReceiptOcrService {
 
     Long recognizeAmount(String storageKey);
+
+    Long recognizeAmount(byte[] imageBytes, String filename, String contentType);
 }
