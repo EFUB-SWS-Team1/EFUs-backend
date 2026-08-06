@@ -1,5 +1,7 @@
 package com.efus.backend.global.security;
 
+import com.efus.backend.global.security.handler.CustomAccessDeniedHandler;
+import com.efus.backend.global.security.handler.CustomAuthenticationEntryPoint;
 import com.efus.backend.global.security.jwt.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -22,6 +24,8 @@ import java.util.List;
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
+    private final CustomAccessDeniedHandler customAccessDeniedHandler;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -34,6 +38,10 @@ public class SecurityConfig {
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                )
+                .exceptionHandling(exception -> exception
+                        .authenticationEntryPoint(customAuthenticationEntryPoint) // 인증 실패 (401)
+                        .accessDeniedHandler(customAccessDeniedHandler)           // 권한 부족 (403)
                 )
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
