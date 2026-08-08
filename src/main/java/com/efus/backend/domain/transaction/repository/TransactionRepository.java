@@ -47,6 +47,19 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
      );
 
     @Query("""
+        select coalesce(sum(t.amount), 0)
+        from Transaction t
+        where t.term.id = :termId
+          and t.transactionType = :transactionType
+          and t.funding is not null
+          and t.deleted = false
+        """)
+    Long sumFundingAmountByTermIdAndTransactionType(
+            @Param("termId") Long termId,
+            @Param("transactionType") TransactionType transactionType
+    );
+
+    @Query("""
             select t
             from Transaction t
             where t.term.id = :termId

@@ -180,7 +180,7 @@ public class FundingService {
         // 총 예산, 행사 개수, 총 지출액
         Long totalBudgetAmount = fundingRepository.sumBudgetAmountByTermId(termId);
         Long fundingCount = fundingRepository.countByOrganizationTerm_Id(termId);
-        Long totalSpentAmount = transactionRepository.sumAmountByTermIdAndTransactionType(
+        Long totalSpentAmount = transactionRepository.sumFundingAmountByTermIdAndTransactionType(
                 termId,
                 TransactionType.EXPENSE
         );
