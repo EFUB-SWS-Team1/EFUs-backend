@@ -1,4 +1,4 @@
-<img width="1920" height="1080" alt="19" src="https://github.com/user-attachments/assets/2a84c437-4b6e-4069-8d8e-6b11e0609bc1" />
+<img width="1920" height="1080" alt="19" src="https://github.com/user-attachments/assets/79c16a34-731c-4ac3-a22d-df5394a8798a" />
 
 
 
@@ -11,7 +11,7 @@ EFUB SWS 1팀 EFUs 프로젝트입니다.
 
 # 🧑🏻‍💻 Backend Developer
 
-| 이현정 | 진 웨이안 | 이현경 |
+| 이현정 | 진웨이얀 | 이현경 |
 |:---:|:---:|:---:|
 | [@KKANGCHONG](https://github.com/KKANGCHONG) | [@ZinYan](https://github.com/ZinYan) | [@eluda315](https://github.com/eluda315) |
 | <img src="https://github.com/user-attachments/assets/848187dd-36d5-4673-8cdb-421f78bcf544" width="200"> | <img src="https://github.com/user-attachments/assets/95bd1a76-ca43-4240-a679-8d5f358362b9" width="200"> | <img src="https://github.com/user-attachments/assets/fed1eca5-4540-4705-beb7-6280c43b4f93" width="200"> |
