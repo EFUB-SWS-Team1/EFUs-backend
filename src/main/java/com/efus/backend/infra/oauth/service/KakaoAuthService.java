@@ -11,8 +11,7 @@ import com.efus.backend.infra.oauth.dto.response.KakaoTokenResponse;
 import com.efus.backend.infra.oauth.dto.response.KakaoUserInfoResponse;
 import com.efus.backend.infra.oauth.dto.response.LoginResponse;
 import com.efus.backend.infra.oauth.dto.response.ReissueResponse;
-import com.efus.backend.infra.oauth.entity.RefreshToken;
-import com.efus.backend.infra.oauth.repository.RefreshTokenRepository;
+import com.efus.backend.infra.oauth.store.RefreshTokenStore;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -22,7 +21,7 @@ import org.springframework.stereotype.Service;
 public class KakaoAuthService {
 
     private final UserRepository userRepository;
-    private final RefreshTokenRepository refreshTokenRepository;
+    private final RefreshTokenStore refreshTokenStore;
     private final JwtTokenProvider jwtTokenProvider;
     private final KakaoOAuthClient kakaoOAuthClient;
 
@@ -49,7 +48,7 @@ public class KakaoAuthService {
 
         String accessToken = jwtTokenProvider.createAccessToken(user.getId());
         String refreshToken = jwtTokenProvider.createRefreshToken(user.getId());
-        saveOrUpdateRefreshToken(user.getId(), refreshToken);
+        refreshTokenStore.saveOrUpdate(user.getId(), refreshToken);
 
         LoginResponse loginResponse = LoginResponse.from(accessToken, jwtTokenProvider.getAccessTokenExpirationInSeconds(), isNewUser, user);
         return new LoginResult(loginResponse, refreshToken, isNewUser);
@@ -64,7 +63,7 @@ public class KakaoAuthService {
         jwtTokenProvider.validateRefreshToken(refreshTokenValue);
 
         Long userId = jwtTokenProvider.getUserIdFromToken(refreshTokenValue);
-        refreshTokenRepository.deleteByUserId(userId);
+        refreshTokenStore.deleteByUserId(userId);
     }
 
     @Transactional
@@ -76,10 +75,10 @@ public class KakaoAuthService {
         jwtTokenProvider.validateRefreshToken(refreshTokenValue);
         Long userId = jwtTokenProvider.getUserIdFromToken(refreshTokenValue);
 
-        RefreshToken storedToken = refreshTokenRepository.findByUserId(userId)
+        String storedToken = refreshTokenStore.findTokenByUserId(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.INVALID_REFRESH_TOKEN));
 
-        if (!storedToken.getToken().equals(refreshTokenValue)) {
+        if (!storedToken.equals(refreshTokenValue)) {
             throw new CustomException(ErrorCode.INVALID_REFRESH_TOKEN);
         }
 
@@ -89,20 +88,12 @@ public class KakaoAuthService {
 
         if (jwtTokenProvider.shouldRotateRefreshToken(refreshTokenValue)) {
             newRefreshToken = jwtTokenProvider.createRefreshToken(userId);
-            storedToken.rotateToken(newRefreshToken);
+            refreshTokenStore.saveOrUpdate(userId, newRefreshToken);
             rotated = true;
         }
 
         ReissueResponse response = ReissueResponse.from(newAccessToken, jwtTokenProvider.getAccessTokenExpirationInSeconds(), rotated);
         return new ReissueResult(response, newRefreshToken, rotated);
-    }
-
-    private void saveOrUpdateRefreshToken(Long userId, String token) {
-        refreshTokenRepository.findByUserId(userId)
-                .ifPresentOrElse(
-                        existing -> existing.rotateToken(token),
-                        () -> refreshTokenRepository.save(RefreshToken.builder().userId(userId).token(token).build())
-                );
     }
 
     public record LoginResult(LoginResponse loginResponse, String refreshToken, boolean isNewUser) {}

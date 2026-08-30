@@ -1,0 +1,5 @@
+spring:
+  data:
+    redis:
+      host: ${EFUS_REDIS_HOST}
+      port: ${EFUS_REDIS_PORT:6379}
