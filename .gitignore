@@ -35,3 +35,7 @@ out/
 
 ### VS Code ###
 .vscode/
+
+ocr-service/.venv/
+ocr-service/__pycache__/
+ocr-service/**/*.pyc
