@@ -44,6 +44,12 @@ public class KakaoAuthService {
                     .build();
             user = userRepository.save(user);
             isNewUser = true;
+        } else {
+            user.updateKakaoProfile(
+                    userInfo.kakaoAccount().profile().nickname(),
+                    userInfo.kakaoAccount().email(),
+                    userInfo.kakaoAccount().profile().profileImageUrl()
+            );
         }
 
         String accessToken = jwtTokenProvider.createAccessToken(user.getId());

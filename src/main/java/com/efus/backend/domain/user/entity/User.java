@@ -32,6 +32,18 @@ public class User extends BaseEntity {
     @Column(nullable = false)
     private Status status;
 
+    public void updateKakaoProfile(String name, String email, String profileImageUrl) {
+        if (name != null && !name.isBlank()) {
+            this.name = name;
+        }
+        if (email != null) {
+            this.email = email;
+        }
+        if (profileImageUrl != null) {
+            this.profileImageUrl = profileImageUrl;
+        }
+    }
+
     @Builder
     public User(Long kakaoId, String email, String name, String profileImageUrl, Status status) {
         this.kakaoId = kakaoId;
